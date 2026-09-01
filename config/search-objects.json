@@ -1,0 +1,464 @@
+{
+  "apiVersion": "2026-04-01",
+  "searchEndpoint": "${AZURE_SEARCH_ENDPOINT}",
+  "objects": [
+    {
+      "kind": "indexes",
+      "name": "tjx-bvx-products-baseline-v1",
+      "payload": {
+        "name": "tjx-bvx-products-baseline-v1",
+        "fields": [
+          { "name": "id", "type": "Edm.String", "key": true, "filterable": true },
+          { "name": "name", "type": "Edm.String", "searchable": true },
+          { "name": "description", "type": "Edm.String", "searchable": true },
+          { "name": "category", "type": "Edm.String", "searchable": true, "filterable": true, "facetable": true },
+          { "name": "imageUrl", "type": "Edm.String" },
+          { "name": "descriptionVector", "type": "Collection(Edm.Single)", "searchable": true, "stored": true, "dimensions": "${AZURE_EMBEDDING_DIMENSIONS}", "vectorSearchProfile": "tjx-bvx-vector-profile" }
+        ],
+        "vectorSearch": {
+          "algorithms": [{ "name": "tjx-bvx-hnsw", "kind": "hnsw" }],
+          "profiles": [{ "name": "tjx-bvx-vector-profile", "algorithm": "tjx-bvx-hnsw", "vectorizer": "tjx-bvx-openai-vectorizer" }],
+          "vectorizers": [{ "name": "tjx-bvx-openai-vectorizer", "kind": "azureOpenAI", "azureOpenAIParameters": { "resourceUri": "${AZURE_OPENAI_ENDPOINT}", "deploymentId": "${AZURE_EMBEDDING_DEPLOYMENT}", "modelName": "${AZURE_EMBEDDING_MODEL}" } }]
+        }
+      }
+    },
+    {
+      "kind": "indexes",
+      "name": "tjx-bvx-products-enriched-v2",
+      "payload": {
+        "name": "tjx-bvx-products-enriched-v2",
+        "fields": [
+          { "name": "id", "type": "Edm.String", "key": true, "filterable": true },
+          { "name": "name", "type": "Edm.String", "searchable": true },
+          { "name": "description", "type": "Edm.String", "searchable": true },
+          { "name": "category", "type": "Edm.String", "searchable": true, "filterable": true, "facetable": true },
+          { "name": "imageUrl", "type": "Edm.String" },
+          { "name": "searchText", "type": "Edm.String", "searchable": true },
+          { "name": "productType", "type": "Edm.String", "searchable": true, "filterable": true, "facetable": true },
+          { "name": "primaryColors", "type": "Collection(Edm.String)", "searchable": true, "filterable": true, "facetable": true },
+          { "name": "materials", "type": "Collection(Edm.String)", "searchable": true, "filterable": true, "facetable": true },
+          { "name": "attributes", "type": "Collection(Edm.String)", "searchable": true, "filterable": true, "facetable": true },
+          { "name": "descriptionVector", "type": "Collection(Edm.Single)", "searchable": true, "stored": true, "dimensions": "${AZURE_EMBEDDING_DIMENSIONS}", "vectorSearchProfile": "tjx-bvx-vector-profile" }
+        ],
+        "vectorSearch": {
+          "algorithms": [{ "name": "tjx-bvx-hnsw", "kind": "hnsw" }],
+          "profiles": [{ "name": "tjx-bvx-vector-profile", "algorithm": "tjx-bvx-hnsw", "vectorizer": "tjx-bvx-openai-vectorizer" }],
+          "vectorizers": [{ "name": "tjx-bvx-openai-vectorizer", "kind": "azureOpenAI", "azureOpenAIParameters": { "resourceUri": "${AZURE_OPENAI_ENDPOINT}", "deploymentId": "${AZURE_EMBEDDING_DEPLOYMENT}", "modelName": "${AZURE_EMBEDDING_MODEL}" } }]
+        }
+      }
+    },
+    {
+      "kind": "indexes",
+      "name": "tjx-bvx-products-enriched-v3",
+      "payload": {
+        "name": "tjx-bvx-products-enriched-v3",
+        "fields": [
+          { "name": "id", "type": "Edm.String", "key": true, "filterable": true },
+          { "name": "name", "type": "Edm.String", "searchable": true },
+          { "name": "description", "type": "Edm.String", "searchable": true },
+          { "name": "category", "type": "Edm.String", "searchable": true, "filterable": true, "facetable": true },
+          { "name": "imageUrl", "type": "Edm.String" },
+          { "name": "searchText", "type": "Edm.String", "searchable": true },
+          { "name": "productFamily", "type": "Edm.String", "searchable": true, "filterable": true, "facetable": true },
+          { "name": "productType", "type": "Edm.String", "searchable": true, "filterable": true, "facetable": true },
+          { "name": "audiences", "type": "Collection(Edm.String)", "searchable": true, "filterable": true, "facetable": true },
+          { "name": "primaryColors", "type": "Collection(Edm.String)", "searchable": true, "filterable": true, "facetable": true },
+          { "name": "materials", "type": "Collection(Edm.String)", "searchable": true, "filterable": true, "facetable": true },
+          { "name": "styles", "type": "Collection(Edm.String)", "searchable": true, "filterable": true, "facetable": true },
+          { "name": "closureTypes", "type": "Collection(Edm.String)", "searchable": true, "filterable": true, "facetable": true },
+          { "name": "patterns", "type": "Collection(Edm.String)", "searchable": true, "filterable": true, "facetable": true },
+          { "name": "occasions", "type": "Collection(Edm.String)", "searchable": true, "filterable": true, "facetable": true },
+          { "name": "normalizedBrand", "type": "Edm.String", "searchable": true, "filterable": true, "facetable": true },
+          { "name": "attributes", "type": "Collection(Edm.String)", "searchable": true, "filterable": true, "facetable": true },
+          { "name": "enrichmentConfidence", "type": "Edm.Double", "filterable": true, "sortable": true },
+          { "name": "descriptionVector", "type": "Collection(Edm.Single)", "searchable": true, "stored": true, "dimensions": "${AZURE_EMBEDDING_DIMENSIONS}", "vectorSearchProfile": "tjx-bvx-vector-profile" }
+        ],
+        "vectorSearch": {
+          "algorithms": [{ "name": "tjx-bvx-hnsw", "kind": "hnsw" }],
+          "profiles": [{ "name": "tjx-bvx-vector-profile", "algorithm": "tjx-bvx-hnsw", "vectorizer": "tjx-bvx-openai-vectorizer" }],
+          "vectorizers": [{ "name": "tjx-bvx-openai-vectorizer", "kind": "azureOpenAI", "azureOpenAIParameters": { "resourceUri": "${AZURE_OPENAI_ENDPOINT}", "deploymentId": "${AZURE_EMBEDDING_DEPLOYMENT}", "modelName": "${AZURE_EMBEDDING_MODEL}" } }]
+        },
+        "semantic": {
+          "configurations": [{
+            "name": "tjx-bvx-products-semantic-v3",
+            "prioritizedFields": {
+              "titleField": { "fieldName": "name" },
+              "prioritizedContentFields": [
+                { "fieldName": "description" },
+                { "fieldName": "searchText" }
+              ],
+              "prioritizedKeywordsFields": [
+                { "fieldName": "productFamily" },
+                { "fieldName": "productType" },
+                { "fieldName": "primaryColors" },
+                { "fieldName": "attributes" }
+              ]
+            }
+          }]
+        }
+      }
+    },
+    {
+      "kind": "datasources",
+      "name": "tjx-bvx-cosmos-products-ds",
+      "payload": {
+        "name": "tjx-bvx-cosmos-products-ds",
+        "type": "cosmosdb",
+        "credentials": { "connectionString": "ResourceId=${AZURE_COSMOS_RESOURCE_ID};Database=retail-search-poc;IdentityAuthType=AccessToken" },
+        "container": { "name": "products" },
+        "dataChangeDetectionPolicy": { "@odata.type": "#Microsoft.Azure.Search.HighWaterMarkChangeDetectionPolicy", "highWaterMarkColumnName": "_ts" }
+      }
+    },
+    {
+      "kind": "datasources",
+      "name": "tjx-bvx-cosmos-products-ds-v4",
+      "payload": {
+        "name": "tjx-bvx-cosmos-products-ds-v4",
+        "type": "cosmosdb",
+        "credentials": { "connectionString": "ResourceId=${AZURE_COSMOS_RESOURCE_ID};Database=retail-search-poc;IdentityAuthType=AccessToken" },
+        "container": { "name": "products", "query": "SELECT * FROM c WHERE c._ts >= @HighWaterMark ORDER BY c._ts" },
+        "dataChangeDetectionPolicy": { "@odata.type": "#Microsoft.Azure.Search.HighWaterMarkChangeDetectionPolicy", "highWaterMarkColumnName": "_ts" }
+      }
+    },
+    {
+      "kind": "indexes",
+      "name": "tjx-bvx-products-enriched-v4",
+      "payload": {
+        "name": "tjx-bvx-products-enriched-v4",
+        "fields": [
+          { "name": "id", "type": "Edm.String", "key": true, "filterable": true },
+          { "name": "name", "type": "Edm.String", "searchable": true },
+          { "name": "description", "type": "Edm.String", "searchable": true },
+          { "name": "category", "type": "Edm.String", "searchable": true, "filterable": true, "facetable": true },
+          { "name": "imageUrl", "type": "Edm.String" },
+          { "name": "searchText", "type": "Edm.String", "searchable": true },
+          { "name": "productFamily", "type": "Edm.String", "searchable": true, "filterable": true, "facetable": true },
+          { "name": "productType", "type": "Edm.String", "searchable": true, "filterable": true, "facetable": true },
+          { "name": "audiences", "type": "Collection(Edm.String)", "searchable": true, "filterable": true, "facetable": true },
+          { "name": "primaryColors", "type": "Collection(Edm.String)", "searchable": true, "filterable": true, "facetable": true },
+          { "name": "materials", "type": "Collection(Edm.String)", "searchable": true, "filterable": true, "facetable": true },
+          { "name": "styles", "type": "Collection(Edm.String)", "searchable": true, "filterable": true, "facetable": true },
+          { "name": "closureTypes", "type": "Collection(Edm.String)", "searchable": true, "filterable": true, "facetable": true },
+          { "name": "patterns", "type": "Collection(Edm.String)", "searchable": true, "filterable": true, "facetable": true },
+          { "name": "occasions", "type": "Collection(Edm.String)", "searchable": true, "filterable": true, "facetable": true },
+          { "name": "normalizedBrand", "type": "Edm.String", "searchable": true, "filterable": true, "facetable": true },
+          { "name": "attributes", "type": "Collection(Edm.String)", "searchable": true, "filterable": true, "facetable": true },
+          { "name": "enrichmentConfidence", "type": "Edm.Double", "filterable": true, "sortable": true },
+          { "name": "descriptionVector", "type": "Collection(Edm.Single)", "searchable": true, "stored": true, "dimensions": "${AZURE_EMBEDDING_DIMENSIONS}", "vectorSearchProfile": "tjx-bvx-vector-profile" },
+          { "name": "imageVector", "type": "Collection(Edm.Single)", "searchable": true, "stored": true, "dimensions": 1024, "vectorSearchProfile": "tjx-bvx-image-vector-profile" }
+        ],
+        "vectorSearch": {
+          "algorithms": [
+            { "name": "tjx-bvx-hnsw", "kind": "hnsw", "hnswParameters": { "metric": "cosine" } },
+            { "name": "tjx-bvx-image-hnsw", "kind": "hnsw", "hnswParameters": { "metric": "cosine" } }
+          ],
+          "profiles": [
+            { "name": "tjx-bvx-vector-profile", "algorithm": "tjx-bvx-hnsw", "vectorizer": "tjx-bvx-openai-vectorizer" },
+            { "name": "tjx-bvx-image-vector-profile", "algorithm": "tjx-bvx-image-hnsw" }
+          ],
+          "vectorizers": [{ "name": "tjx-bvx-openai-vectorizer", "kind": "azureOpenAI", "azureOpenAIParameters": { "resourceUri": "${AZURE_OPENAI_ENDPOINT}", "deploymentId": "${AZURE_EMBEDDING_DEPLOYMENT}", "modelName": "${AZURE_EMBEDDING_MODEL}" } }]
+        },
+        "semantic": {
+          "configurations": [{
+            "name": "tjx-bvx-products-semantic-v3",
+            "prioritizedFields": {
+              "titleField": { "fieldName": "name" },
+              "prioritizedContentFields": [
+                { "fieldName": "description" },
+                { "fieldName": "searchText" }
+              ],
+              "prioritizedKeywordsFields": [
+                { "fieldName": "productFamily" },
+                { "fieldName": "productType" },
+                { "fieldName": "primaryColors" },
+                { "fieldName": "attributes" }
+              ]
+            }
+          }]
+        }
+      }
+    },
+    {
+      "kind": "skillsets",
+      "name": "tjx-bvx-products-baseline-skillset-v1",
+      "payload": {
+        "name": "tjx-bvx-products-baseline-skillset-v1",
+        "skills": [{
+          "@odata.type": "#Microsoft.Skills.Text.AzureOpenAIEmbeddingSkill",
+          "name": "tjx-bvx-baseline-name-embedding",
+          "context": "/document",
+          "resourceUri": "${AZURE_OPENAI_ENDPOINT}",
+          "deploymentId": "${AZURE_EMBEDDING_DEPLOYMENT}",
+          "modelName": "${AZURE_EMBEDDING_MODEL}",
+          "dimensions": "${AZURE_EMBEDDING_DIMENSIONS}",
+          "inputs": [{ "name": "text", "source": "/document/name" }],
+          "outputs": [{ "name": "embedding", "targetName": "descriptionVector" }]
+        }]
+      }
+    },
+    {
+      "kind": "skillsets",
+      "name": "tjx-bvx-products-enriched-skillset-v2",
+      "payload": {
+        "name": "tjx-bvx-products-enriched-skillset-v2",
+        "skills": [
+          {
+            "@odata.type": "#Microsoft.Skills.Custom.WebApiSkill",
+            "name": "tjx-bvx-product-vision-enrichment",
+            "context": "/document",
+            "uri": "${AZURE_CONTAINER_APP_URI}/api/skills/product-enrichment",
+            "authResourceId": "${ENTRA_API_AUDIENCE}",
+            "httpMethod": "POST",
+            "timeout": "PT230S",
+            "batchSize": 4,
+            "degreeOfParallelism": 1,
+            "inputs": [
+              { "name": "imageUrl", "source": "/document/imageUrl" },
+              { "name": "name", "source": "/document/name" },
+              { "name": "category", "source": "/document/category" }
+            ],
+            "outputs": [
+              { "name": "description", "targetName": "enrichedDescription" },
+              { "name": "productType", "targetName": "productType" },
+              { "name": "primaryColors", "targetName": "primaryColors" },
+              { "name": "materials", "targetName": "materials" },
+              { "name": "attributes", "targetName": "attributes" },
+              { "name": "searchText", "targetName": "searchText" }
+            ]
+          },
+          {
+            "@odata.type": "#Microsoft.Skills.Text.AzureOpenAIEmbeddingSkill",
+            "name": "tjx-bvx-enriched-search-text-embedding",
+            "context": "/document",
+            "resourceUri": "${AZURE_OPENAI_ENDPOINT}",
+            "deploymentId": "${AZURE_EMBEDDING_DEPLOYMENT}",
+            "modelName": "${AZURE_EMBEDDING_MODEL}",
+            "dimensions": "${AZURE_EMBEDDING_DIMENSIONS}",
+            "inputs": [{ "name": "text", "source": "/document/searchText" }],
+            "outputs": [{ "name": "embedding", "targetName": "descriptionVector" }]
+          }
+        ]
+      }
+    },
+    {
+      "kind": "skillsets",
+      "name": "tjx-bvx-products-enriched-skillset-v3",
+      "payload": {
+        "name": "tjx-bvx-products-enriched-skillset-v3",
+        "skills": [
+          {
+            "@odata.type": "#Microsoft.Skills.Custom.WebApiSkill",
+            "name": "tjx-bvx-product-normalized-enrichment-v3",
+            "context": "/document",
+            "uri": "${AZURE_CONTAINER_APP_URI}/api/skills/product-enrichment",
+            "authResourceId": "${ENTRA_API_AUDIENCE}",
+            "httpMethod": "POST",
+            "timeout": "PT230S",
+            "batchSize": 4,
+            "degreeOfParallelism": 1,
+            "inputs": [
+              { "name": "imageUrl", "source": "/document/imageUrl" },
+              { "name": "name", "source": "/document/name" },
+              { "name": "category", "source": "/document/category" }
+            ],
+            "outputs": [
+              { "name": "description", "targetName": "enrichedDescription" },
+              { "name": "productFamily", "targetName": "productFamily" },
+              { "name": "productType", "targetName": "productType" },
+              { "name": "audiences", "targetName": "audiences" },
+              { "name": "primaryColors", "targetName": "primaryColors" },
+              { "name": "materials", "targetName": "materials" },
+              { "name": "styles", "targetName": "styles" },
+              { "name": "closureTypes", "targetName": "closureTypes" },
+              { "name": "patterns", "targetName": "patterns" },
+              { "name": "occasions", "targetName": "occasions" },
+              { "name": "normalizedBrand", "targetName": "normalizedBrand" },
+              { "name": "attributes", "targetName": "attributes" },
+              { "name": "searchText", "targetName": "searchText" },
+              { "name": "enrichmentConfidence", "targetName": "enrichmentConfidence" }
+            ]
+          },
+          {
+            "@odata.type": "#Microsoft.Skills.Text.AzureOpenAIEmbeddingSkill",
+            "name": "tjx-bvx-enriched-v3-search-text-embedding",
+            "context": "/document",
+            "resourceUri": "${AZURE_OPENAI_ENDPOINT}",
+            "deploymentId": "${AZURE_EMBEDDING_DEPLOYMENT}",
+            "modelName": "${AZURE_EMBEDDING_MODEL}",
+            "dimensions": "${AZURE_EMBEDDING_DIMENSIONS}",
+            "inputs": [{ "name": "text", "source": "/document/searchText" }],
+            "outputs": [{ "name": "embedding", "targetName": "descriptionVector" }]
+          }
+        ]
+      }
+    },
+    {
+      "kind": "indexers",
+      "name": "tjx-bvx-products-baseline-indexer-v1",
+      "payload": {
+        "name": "tjx-bvx-products-baseline-indexer-v1",
+        "dataSourceName": "tjx-bvx-cosmos-products-ds",
+        "targetIndexName": "tjx-bvx-products-baseline-v1",
+        "skillsetName": "tjx-bvx-products-baseline-skillset-v1",
+        "parameters": { "configuration": { "executionEnvironment": "private" } },
+        "fieldMappings": [{ "sourceFieldName": "sourceFileName", "targetFieldName": "description" }],
+        "outputFieldMappings": [{ "sourceFieldName": "/document/descriptionVector", "targetFieldName": "descriptionVector" }],
+        "schedule": { "interval": "PT15M" }
+      }
+    },
+    {
+      "kind": "skillsets",
+      "name": "tjx-bvx-products-enriched-skillset-v4",
+      "payload": {
+        "name": "tjx-bvx-products-enriched-skillset-v4",
+        "skills": [
+          {
+            "@odata.type": "#Microsoft.Skills.Custom.WebApiSkill",
+            "name": "tjx-bvx-product-multimodal-enrichment-v4",
+            "context": "/document",
+            "uri": "${AZURE_CONTAINER_APP_URI}/api/skills/product-enrichment",
+            "authResourceId": "${ENTRA_API_AUDIENCE}",
+            "httpMethod": "POST",
+            "timeout": "PT230S",
+            "batchSize": 4,
+            "degreeOfParallelism": 1,
+            "inputs": [
+              { "name": "imageUrl", "source": "/document/imageUrl" },
+              { "name": "name", "source": "/document/name" },
+              { "name": "category", "source": "/document/category" }
+            ],
+            "outputs": [
+              { "name": "description", "targetName": "enrichedDescription" },
+              { "name": "productFamily", "targetName": "productFamily" },
+              { "name": "productType", "targetName": "productType" },
+              { "name": "audiences", "targetName": "audiences" },
+              { "name": "primaryColors", "targetName": "primaryColors" },
+              { "name": "materials", "targetName": "materials" },
+              { "name": "styles", "targetName": "styles" },
+              { "name": "closureTypes", "targetName": "closureTypes" },
+              { "name": "patterns", "targetName": "patterns" },
+              { "name": "occasions", "targetName": "occasions" },
+              { "name": "normalizedBrand", "targetName": "normalizedBrand" },
+              { "name": "attributes", "targetName": "attributes" },
+              { "name": "searchText", "targetName": "searchText" },
+              { "name": "enrichmentConfidence", "targetName": "enrichmentConfidence" },
+              { "name": "imageVector", "targetName": "imageVector" }
+            ]
+          },
+          {
+            "@odata.type": "#Microsoft.Skills.Text.AzureOpenAIEmbeddingSkill",
+            "name": "tjx-bvx-enriched-v4-search-text-embedding",
+            "context": "/document",
+            "resourceUri": "${AZURE_OPENAI_ENDPOINT}",
+            "deploymentId": "${AZURE_EMBEDDING_DEPLOYMENT}",
+            "modelName": "${AZURE_EMBEDDING_MODEL}",
+            "dimensions": "${AZURE_EMBEDDING_DIMENSIONS}",
+            "inputs": [{ "name": "text", "source": "/document/searchText" }],
+            "outputs": [{ "name": "embedding", "targetName": "descriptionVector" }]
+          }
+        ]
+      }
+    },
+    {
+      "kind": "indexers",
+      "name": "tjx-bvx-products-enriched-indexer-v2",
+      "payload": {
+        "name": "tjx-bvx-products-enriched-indexer-v2",
+        "dataSourceName": "tjx-bvx-cosmos-products-ds",
+        "targetIndexName": "tjx-bvx-products-enriched-v2",
+        "skillsetName": "tjx-bvx-products-enriched-skillset-v2",
+        "parameters": {
+          "maxFailedItems": 0,
+          "maxFailedItemsPerBatch": 0,
+          "configuration": { "executionEnvironment": "private" }
+        },
+        "outputFieldMappings": [
+          { "sourceFieldName": "/document/enrichedDescription", "targetFieldName": "description" },
+          { "sourceFieldName": "/document/searchText", "targetFieldName": "searchText" },
+          { "sourceFieldName": "/document/productType", "targetFieldName": "productType" },
+          { "sourceFieldName": "/document/primaryColors", "targetFieldName": "primaryColors" },
+          { "sourceFieldName": "/document/materials", "targetFieldName": "materials" },
+          { "sourceFieldName": "/document/attributes", "targetFieldName": "attributes" },
+          { "sourceFieldName": "/document/descriptionVector", "targetFieldName": "descriptionVector" }
+        ],
+        "schedule": { "interval": "PT15M" }
+      }
+    },
+    {
+      "kind": "indexers",
+      "name": "tjx-bvx-products-enriched-indexer-v3",
+      "payload": {
+        "name": "tjx-bvx-products-enriched-indexer-v3",
+        "dataSourceName": "tjx-bvx-cosmos-products-ds",
+        "targetIndexName": "tjx-bvx-products-enriched-v3",
+        "skillsetName": "tjx-bvx-products-enriched-skillset-v3",
+        "parameters": {
+          "maxFailedItems": 0,
+          "maxFailedItemsPerBatch": 0,
+          "configuration": { "executionEnvironment": "private" }
+        },
+        "outputFieldMappings": [
+          { "sourceFieldName": "/document/enrichedDescription", "targetFieldName": "description" },
+          { "sourceFieldName": "/document/searchText", "targetFieldName": "searchText" },
+          { "sourceFieldName": "/document/productFamily", "targetFieldName": "productFamily" },
+          { "sourceFieldName": "/document/productType", "targetFieldName": "productType" },
+          { "sourceFieldName": "/document/audiences", "targetFieldName": "audiences" },
+          { "sourceFieldName": "/document/primaryColors", "targetFieldName": "primaryColors" },
+          { "sourceFieldName": "/document/materials", "targetFieldName": "materials" },
+          { "sourceFieldName": "/document/styles", "targetFieldName": "styles" },
+          { "sourceFieldName": "/document/closureTypes", "targetFieldName": "closureTypes" },
+          { "sourceFieldName": "/document/patterns", "targetFieldName": "patterns" },
+          { "sourceFieldName": "/document/occasions", "targetFieldName": "occasions" },
+          { "sourceFieldName": "/document/normalizedBrand", "targetFieldName": "normalizedBrand" },
+          { "sourceFieldName": "/document/attributes", "targetFieldName": "attributes" },
+          { "sourceFieldName": "/document/enrichmentConfidence", "targetFieldName": "enrichmentConfidence" },
+          { "sourceFieldName": "/document/descriptionVector", "targetFieldName": "descriptionVector" }
+        ],
+        "schedule": { "interval": "PT15M" }
+      }
+    },
+    {
+      "kind": "indexers",
+      "name": "tjx-bvx-products-enriched-indexer-v4",
+      "payload": {
+        "name": "tjx-bvx-products-enriched-indexer-v4",
+        "dataSourceName": "tjx-bvx-cosmos-products-ds-v4",
+        "targetIndexName": "tjx-bvx-products-enriched-v4",
+        "skillsetName": "tjx-bvx-products-enriched-skillset-v4",
+        "parameters": {
+          "maxFailedItems": 0,
+          "maxFailedItemsPerBatch": 0,
+          "configuration": {
+            "executionEnvironment": "private",
+            "assumeOrderByHighWaterMarkColumn": true
+          }
+        },
+        "outputFieldMappings": [
+          { "sourceFieldName": "/document/enrichedDescription", "targetFieldName": "description" },
+          { "sourceFieldName": "/document/searchText", "targetFieldName": "searchText" },
+          { "sourceFieldName": "/document/productFamily", "targetFieldName": "productFamily" },
+          { "sourceFieldName": "/document/productType", "targetFieldName": "productType" },
+          { "sourceFieldName": "/document/audiences", "targetFieldName": "audiences" },
+          { "sourceFieldName": "/document/primaryColors", "targetFieldName": "primaryColors" },
+          { "sourceFieldName": "/document/materials", "targetFieldName": "materials" },
+          { "sourceFieldName": "/document/styles", "targetFieldName": "styles" },
+          { "sourceFieldName": "/document/closureTypes", "targetFieldName": "closureTypes" },
+          { "sourceFieldName": "/document/patterns", "targetFieldName": "patterns" },
+          { "sourceFieldName": "/document/occasions", "targetFieldName": "occasions" },
+          { "sourceFieldName": "/document/normalizedBrand", "targetFieldName": "normalizedBrand" },
+          { "sourceFieldName": "/document/attributes", "targetFieldName": "attributes" },
+          { "sourceFieldName": "/document/enrichmentConfidence", "targetFieldName": "enrichmentConfidence" },
+          { "sourceFieldName": "/document/descriptionVector", "targetFieldName": "descriptionVector" },
+          { "sourceFieldName": "/document/imageVector", "targetFieldName": "imageVector" }
+        ],
+        "schedule": { "interval": "PT15M" }
+      }
+    },
+    {
+      "kind": "aliases",
+      "name": "tjx-bvx-products-active",
+      "createOnly": true,
+      "payload": { "name": "tjx-bvx-products-active", "indexes": ["tjx-bvx-products-baseline-v1"] }
+    }
+  ]
+}

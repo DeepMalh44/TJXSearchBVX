@@ -1,0 +1,12 @@
+.azure
+.git
+.pytest_cache
+.ruff_cache
+.venv
+**/__pycache__
+app/frontend/node_modules
+app/static
+docs
+infra
+tests
+*.pyc

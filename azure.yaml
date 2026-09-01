@@ -1,0 +1,37 @@
+name: tjx-retail-search-poc
+metadata:
+  template: tjx-retail-search-poc@0.1.0
+infra:
+  provider: bicep
+  path: infra
+  module: main
+services:
+  web:
+    project: .
+    language: python
+    host: containerapp
+    docker:
+      path: app/Dockerfile
+      context: .
+hooks:
+  preprovision:
+    windows:
+      shell: pwsh
+      run: .venv/Scripts/python.exe scripts/ensure_subscription_features.py
+    posix:
+      shell: sh
+      run: .venv/bin/python scripts/ensure_subscription_features.py
+  prepackage:
+    windows:
+      shell: pwsh
+      run: .venv/Scripts/python.exe scripts/validate_phase3.py
+    posix:
+      shell: sh
+      run: .venv/bin/python scripts/validate_phase3.py
+  postdeploy:
+    windows:
+      shell: pwsh
+      run: python scripts/finalize_phase3.py
+    posix:
+      shell: sh
+      run: python3 scripts/finalize_phase3.py

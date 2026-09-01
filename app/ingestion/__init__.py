@@ -1,0 +1,1 @@
+"""Deterministic catalog ingestion package."""
