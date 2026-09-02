@@ -256,6 +256,7 @@ The Vision resource is deployed to East US because the multimodal embedding API 
 ## Further Reading
 
 - `docs/architecture.md`: deeper architecture and security rationale
+- `docs/cost-estimate.md`: shareable monthly POC cost estimate and scaling assumptions
 - `docs/assumptions.md`: constraints and design assumptions
 - `docs/demo-runbook.md`: demonstration sequence
 - `docs/implementation-plan.md`: implementation history and phased plan
