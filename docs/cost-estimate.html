@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TJX Retail Search POC Monthly Cost Estimate</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17202a;
+      --muted: #59636e;
+      --line: #d9dee3;
+      --paper: #ffffff;
+      --wash: #f4f7f8;
+      --brand: #a32638;
+      --accent: #087e8b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--wash);
+      font: 15px/1.55 Georgia, "Times New Roman", serif;
+      letter-spacing: 0;
+    }
+    main {
+      width: min(1180px, calc(100% - 32px));
+      margin: 32px auto;
+      padding: 44px 48px;
+      background: var(--paper);
+      border-top: 6px solid var(--brand);
+      box-shadow: 0 12px 40px rgb(23 32 42 / 10%);
+    }
+    h1, h2 { font-family: "Trebuchet MS", Verdana, sans-serif; letter-spacing: 0; }
+    h1 { max-width: 760px; margin: 0; font-size: 36px; line-height: 1.12; }
+    h2 { margin: 36px 0 12px; font-size: 22px; color: var(--brand); }
+    p { margin: 10px 0; }
+    ul { margin: 10px 0; padding-left: 22px; }
+    .meta { margin: 20px 0 28px; color: var(--muted); }
+    .meta span { display: inline-block; margin: 0 24px 6px 0; }
+    .summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 22px 0; }
+    .metric { padding: 18px; border-left: 4px solid var(--accent); background: var(--wash); }
+    .metric span { display: block; color: var(--muted); font-family: "Trebuchet MS", Verdana, sans-serif; font-size: 13px; }
+    .metric strong { display: block; margin-top: 4px; font: 700 30px/1.1 "Trebuchet MS", Verdana, sans-serif; }
+    .table-wrap { overflow-x: auto; border: 1px solid var(--line); }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { padding: 10px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { color: #fff; background: #253746; font-family: "Trebuchet MS", Verdana, sans-serif; }
+    tbody tr:nth-child(even) { background: #f8fafb; }
+    td:last-child, th:last-child { text-align: right; white-space: nowrap; }
+    .total td { font-weight: 700; background: #edf6f5; }
+    code { padding: 1px 4px; background: #eef1f3; font-family: Consolas, monospace; font-size: 0.92em; }
+    a { color: #075e73; }
+    .notice { padding: 14px 16px; border: 1px solid #d9b55a; background: #fff9e8; }
+    footer { margin-top: 36px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+    @media (max-width: 720px) {
+      main { width: 100%; margin: 0; padding: 28px 18px; box-shadow: none; }
+      h1 { font-size: 29px; }
+      .summary { grid-template-columns: 1fr; }
+    }
+    @media print {
+      @page { size: landscape; margin: 12mm; }
+      body { background: #fff; font-size: 11px; }
+      main { width: 100%; margin: 0; padding: 0; border-top-width: 4px; box-shadow: none; }
+      h1 { font-size: 26px; }
+      h2 { margin-top: 22px; page-break-after: avoid; }
+      table { font-size: 9px; }
+      tr { page-break-inside: avoid; }
+      a { color: inherit; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>TJX Retail Search POC Monthly Cost Estimate</h1>
+    <div class="meta">
+      <span><strong>Estimate date:</strong> September 1, 2026</span>
+      <span><strong>Currency:</strong> USD, public pay-as-you-go</span>
+      <span><strong>Regions:</strong> Central US; Vision in East US</span>
+    </div>
+  </header>
+
+  <section class="summary" aria-label="Executive summary">
+    <div class="metric"><span>Low-volume monthly estimate</span><strong>$120.89</strong></div>
+    <div class="metric"><span>Budget with 10% contingency</span><strong>$133.00</strong></div>
+  </section>
+  <p>Azure AI Search Basic and private connectivity make up most of the monthly cost. Azure OpenAI, Vision, Cosmos DB, Storage, and Container Apps are usage-based and inexpensive at POC traffic levels.</p>
+
+  <h2>Workload Assumptions</h2>
+  <ul>
+    <li>10,000 searches per month with one GPT-5.4 mini query-understanding call per search.</li>
+    <li>Average GPT call: 1,200 input tokens and 150 output tokens.</li>
+    <li>80% text-vector searches; 10% image/combined searches.</li>
+    <li>Up to 1,000 semantic/combined searches under the configured free semantic plan.</li>
+    <li>One enrichment pass over 31 products; 23 products have images.</li>
+    <li>1 GB Log Analytics ingestion and less than 1 GB each in Blob Storage and Cosmos DB.</li>
+    <li>Container Apps uses <code>minReplicas: 0</code> and subscription free grants are available.</li>
+    <li>730 hours per month for continuously allocated resources.</li>
+  </ul>
+
+  <h2>Monthly Estimate</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Component</th><th>Deployed SKU/configuration</th><th>Public unit price used</th><th>POC usage assumption</th><th>Monthly</th></tr></thead>
+      <tbody>
+        <tr><td>Azure AI Search</td><td>Basic; 1 replica x 1 partition; semantic plan <code>free</code></td><td>$73.73/Search Unit/month</td><td>1 Search Unit</td><td><strong>$73.73</strong></td></tr>
+        <tr><td>Azure Container Registry</td><td>Basic; first 10 GB included</td><td>$0.167/day</td><td>30 days, under 10 GB</td><td><strong>$5.01</strong></td></tr>
+        <tr><td>Azure Private Link</td><td>2 private endpoints plus 1 Search shared private link</td><td>$0.01/endpoint-hour</td><td>3 x 730 hours</td><td><strong>$21.90</strong></td></tr>
+        <tr><td>Azure Private DNS</td><td>2 private DNS zones</td><td>$0.50/zone/month</td><td>2 zones</td><td><strong>$1.00</strong></td></tr>
+        <tr><td>Azure Container Apps web/API</td><td>Consumption; 0.5 vCPU, 1 GiB; scale to zero</td><td>Free grants: 180K vCPU-s, 360K GiB-s, 2M requests</td><td>10,000 low-duration requests</td><td><strong>$0.00</strong></td></tr>
+        <tr><td>Container Apps ingestion job</td><td>Consumption; 1 vCPU, 2 GiB</td><td>Same consumption grants</td><td>One short run/month</td><td><strong>$0.00</strong></td></tr>
+        <tr><td>Azure OpenAI query understanding</td><td>GPT-5.4 mini, Global Standard</td><td>$0.75/1M input; $4.50/1M output tokens</td><td>12M input + 1.5M output</td><td><strong>$15.75</strong></td></tr>
+        <tr><td>Azure OpenAI index enrichment</td><td>GPT-5.4 mini, Global Standard</td><td>Same token rates</td><td>31 records, one pass</td><td><strong>$0.10</strong></td></tr>
+        <tr><td>Azure OpenAI text embeddings</td><td>text-embedding-3-small, Global Standard</td><td>$0.022/1M tokens</td><td>About 0.24M query tokens plus index tokens</td><td><strong>$0.01</strong></td></tr>
+        <tr><td>Azure AI Vision</td><td>S1 multimodal image embeddings</td><td>$0.10/1,000 image embeddings</td><td>1,000 query + 23 index operations</td><td><strong>$0.10</strong></td></tr>
+        <tr><td>Azure Cosmos DB</td><td>Serverless, single region</td><td>About $0.25/1M RU + $0.25/GB-month</td><td>Low activity, under 1 GB</td><td><strong>$0.50</strong></td></tr>
+        <tr><td>Blob Storage</td><td>StorageV2 Standard LRS, Hot</td><td>Consumption-based</td><td>Under 1 GB, low transactions</td><td><strong>$0.03</strong></td></tr>
+        <tr><td>Log Analytics / Application Insights</td><td>Pay-as-you-go Analytics Logs; 30-day retention</td><td>$2.76/GB ingestion</td><td>1 GB</td><td><strong>$2.76</strong></td></tr>
+        <tr><td>Semantic ranker</td><td>Search semantic plan <code>free</code></td><td>First 1,000 requests/month free</td><td>Up to 1,000 requests</td><td><strong>$0.00</strong></td></tr>
+        <tr><td>Managed Identity, RBAC, VNet, Entra registration</td><td>No separate SKU charge</td><td>No direct charge</td><td>Current configuration</td><td><strong>$0.00</strong></td></tr>
+        <tr class="total"><td colspan="4">Estimated total</td><td>$120.89</td></tr>
+        <tr class="total"><td colspan="4">Planning budget with 10% contingency</td><td>$133.00</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>AI Usage Calculation</h2>
+  <p>For 10,000 GPT-5.4 mini calls: 12 million input tokens cost $9.00 and 1.5 million output tokens cost $6.75, for <strong>$15.75/month</strong>.</p>
+  <p>The deployment capacity value of <code>10</code> is throughput quota, not reserved capacity. Global Standard is billed by token usage.</p>
+
+  <h2>Cost Sensitivity</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Change</th><th>Approximate impact</th></tr></thead>
+      <tbody>
+        <tr><td>Additional 10,000 searches at the same token profile</td><td>+$15.75 GPT cost plus small embedding/compute charges</td></tr>
+        <tr><td>Additional 1,000 image searches</td><td>+$0.10 Vision plus GPT image-token variation</td></tr>
+        <tr><td>Semantic plan changed to Standard</td><td>First 1,000 free, then about $1 per additional 1,000 requests</td></tr>
+        <tr><td>Keep one Container Apps replica always available</td><td>Adds idle/active compute cost</td></tr>
+        <tr><td>Add one Search replica or partition</td><td>Approximately +$73.73/month</td></tr>
+        <tr><td>Add one private endpoint</td><td>Approximately +$7.30/month plus processed data</td></tr>
+        <tr><td>Add 1 GB Analytics Logs</td><td>Approximately +$2.76/month</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Important Notes</h2>
+  <div class="notice">This is a planning estimate, not an Azure quote or invoice forecast. Public prices may differ from negotiated agreements, taxes, currency conversion, and actual measured consumption.</div>
+  <ul>
+    <li>GPT image input varies with image properties; replace the blended token assumption with measured usage after representative testing.</li>
+    <li>Private Link data processing and egress are excluded due to low POC volume; hourly endpoint charges are included.</li>
+    <li>The Search shared private link is conservatively included as a third Private Link connection.</li>
+    <li>Container Apps free grants are subscription-wide and may already be consumed by other workloads.</li>
+    <li>Search Basic is continuously billed while it exists, even when idle.</li>
+    <li>Production sizing usually requires additional Search replicas, larger traffic assumptions, and an explicit semantic ranker plan.</li>
+  </ul>
+
+  <h2>Pricing References</h2>
+  <ul>
+    <li><a href="https://azure.microsoft.com/pricing/details/search/">Azure AI Search</a></li>
+    <li><a href="https://learn.microsoft.com/azure/search/search-sku-manage-costs">Azure AI Search cost planning</a></li>
+    <li><a href="https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/">Azure OpenAI</a></li>
+    <li><a href="https://azure.microsoft.com/pricing/details/cognitive-services/computer-vision/">Azure Vision</a></li>
+    <li><a href="https://azure.microsoft.com/pricing/details/container-apps/">Azure Container Apps</a></li>
+    <li><a href="https://azure.microsoft.com/pricing/details/container-registry/">Azure Container Registry</a></li>
+    <li><a href="https://azure.microsoft.com/pricing/details/cosmos-db/autoscale-provisioned/">Azure Cosmos DB</a></li>
+    <li><a href="https://azure.microsoft.com/pricing/details/private-link/">Azure Private Link</a></li>
+    <li><a href="https://azure.microsoft.com/pricing/details/dns/">Azure DNS</a></li>
+    <li><a href="https://azure.microsoft.com/pricing/details/monitor/">Azure Monitor</a></li>
+  </ul>
+
+  <footer>Prepared for the TJX Retail Search proof of concept. Recalculate before production sizing.</footer>
+</main>
+</body>
+</html>

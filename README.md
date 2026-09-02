@@ -4,6 +4,15 @@ This proof of concept provides authenticated retail product search across text a
 
 The reference environment currently indexes 31 products: 23 have private product images and 8 are metadata-only fixtures. Its stable Search alias `tjx-bvx-products-active` points to `tjx-bvx-products-enriched-v4`. A fresh environment initially creates this alias on V1 and must promote it explicitly after V4 indexing and validation.
 
+## Project Documents
+
+| Document | Purpose |
+| --- | --- |
+| [Detailed architecture](docs/architecture.md) | Explains the deployed components, data ownership, security boundaries, and request/indexing flows. |
+| [Editable Draw.io architecture](docs/tjx-retail-search-architecture.drawio) | Visual architecture with Azure stencils, Microsoft Foundry model usage, and a plain-language flow guide. |
+| [Monthly cost estimate](docs/cost-estimate.md) | Pricing assumptions and estimated monthly Azure cost in Markdown. |
+| [Monthly cost estimate (HTML)](docs/cost-estimate.html) | Responsive, printable version of the monthly cost estimate. |
+
 ## Architecture
 
 ```mermaid
