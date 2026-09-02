@@ -1,8 +1,11 @@
 # TJX Retail Search POC Monthly Cost Estimate
 
-**Estimate date:** September 1, 2026  
-**Currency:** USD, public pay-as-you-go rates  
-**Primary region:** Central US  
+**Estimate date:** September 1, 2026
+
+**Currency:** USD, public pay-as-you-go rates
+
+**Primary region:** Central US
+
 **Vision region:** East US
 
 ## Executive Summary
