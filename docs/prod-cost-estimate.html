@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TJX Retail Search Production Cost Estimate</title>
+  <style>
+    :root { color-scheme: light; --ink:#17202a; --muted:#59636e; --line:#d9dee3; --paper:#fff; --wash:#f4f7f8; --brand:#a32638; --accent:#087e8b; --notice:#fff9e8; }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--ink); background:var(--wash); font:15px/1.55 Georgia,"Times New Roman",serif; letter-spacing:0; }
+    main { width:min(1280px,calc(100% - 32px)); margin:32px auto; padding:44px 48px; background:var(--paper); border-top:6px solid var(--brand); box-shadow:0 12px 40px rgb(23 32 42 / 10%); }
+    h1,h2 { font-family:"Trebuchet MS",Verdana,sans-serif; letter-spacing:0; }
+    h1 { max-width:850px; margin:0; font-size:36px; line-height:1.12; }
+    h2 { margin:36px 0 12px; font-size:22px; color:var(--brand); }
+    p { margin:10px 0; } ul,ol { margin:10px 0; padding-left:22px; }
+    .meta { margin:20px 0 28px; color:var(--muted); } .meta span { display:inline-block; margin:0 24px 6px 0; }
+    .summary { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; margin:22px 0; }
+    .metric { padding:18px; border-left:4px solid var(--accent); background:var(--wash); }
+    .metric span { display:block; color:var(--muted); font-family:"Trebuchet MS",Verdana,sans-serif; font-size:13px; }
+    .metric strong { display:block; margin-top:4px; font:700 27px/1.1 "Trebuchet MS",Verdana,sans-serif; }
+    .table-wrap { overflow-x:auto; border:1px solid var(--line); }
+    table { width:100%; border-collapse:collapse; font-size:13px; } .cost-table { min-width:1280px; }
+    th,td { padding:10px 12px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+    th { color:#fff; background:#253746; font-family:"Trebuchet MS",Verdana,sans-serif; }
+    tbody tr:nth-child(even) { background:#f8fafb; } td:last-child,th:last-child { text-align:right; white-space:nowrap; }
+    .total td { font-weight:700; background:#edf6f5; } code { padding:1px 4px; background:#eef1f3; font-family:Consolas,monospace; font-size:.92em; }
+    a { color:#075e73; } .notice { padding:14px 16px; border:1px solid #d9b55a; background:var(--notice); }
+    footer { margin-top:36px; padding-top:16px; border-top:1px solid var(--line); color:var(--muted); font-size:12px; }
+    @media (max-width:800px) { main { width:100%; margin:0; padding:28px 18px; box-shadow:none; } h1 { font-size:29px; } .summary { grid-template-columns:1fr; } }
+    @media print { @page { size:landscape; margin:10mm; } body { background:#fff; font-size:10px; } main { width:100%; margin:0; padding:0; border-top-width:4px; box-shadow:none; } h1 { font-size:25px; } h2 { margin-top:20px; page-break-after:avoid; } table { font-size:8px; } tr { page-break-inside:avoid; } a { color:inherit; text-decoration:none; } }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>TJX Retail Search Production Cost Estimate</h1>
+    <div class="meta">
+      <span><strong>Estimate date:</strong> September 3, 2026</span>
+      <span><strong>Catalog:</strong> 15 million items</span>
+      <span><strong>Currency:</strong> USD, public pay-as-you-go</span>
+      <span><strong>Primary region:</strong> Central US</span>
+    </div>
+  </header>
+
+  <section class="summary" aria-label="Executive summary">
+    <div class="metric"><span>Single-region recurring baseline</span><strong>$36,411.76/month</strong></div>
+    <div class="metric"><span>Budget with 20% contingency</span><strong>$43,694.11/month</strong></div>
+    <div class="metric"><span>Annual budget with contingency</span><strong>$524,329.34/year</strong></div>
+    <div class="metric"><span>Initial catalog build</span><strong>$26,358 one-time</strong></div>
+  </section>
+  <p>The largest recurring cost is GPT-5.4 mini query understanding because the current application calls it once per search. Azure AI Search is the second-largest fixed cost. Query routing and caching should be validated before production because bypassing GPT for deterministic requests can materially reduce the run rate.</p>
+
+  <h2>Production Assumptions</h2>
+  <ul>
+    <li>15 million active products; 80%, or 12 million, have an image.</li>
+    <li>10 million searches/month; one GPT call per search at a blended 1,200 input and 150 output tokens across text and multimodal requests.</li>
+    <li>80% text-vector searches, 10% image/combined searches, and 30% semantic reranking.</li>
+    <li>5% monthly catalog churn, or 750,000 products requiring enrichment and reindexing.</li>
+    <li>Search Standard S2 with 3 partitions and 3 replicas for 1.5 TB storage, 450 GB vector quota, and query-plus-indexing SLA coverage.</li>
+    <li>Raw vectors are about 141 GB for one index and about 283 GB for active/candidate blue-green indexes before HNSW overhead; obsolete V1-V3 indexes are deleted.</li>
+    <li>Cosmos DB autoscale in two regions with 50,000 maximum RU/s and a 15,000 average hourly peak billing level per region.</li>
+    <li>Zone-redundant Container Apps autoscale from 3 to 30 replicas; 20 million active replica-seconds equals 7.6 continuously active replicas on average.</li>
+    <li>Approximately 3 TB Hot Blob storage and a $1,000 Front Door Premium/WAF, generated-thumbnail, transaction, origin-transfer, and egress allowance.</li>
+    <li>One full catalog rebuild per year is amortized into recurring cost.</li>
+    <li>200 GB/month of telemetry with 30-day retention and 730 hours/month for provisioned resources.</li>
+  </ul>
+
+  <h2>Recurring Monthly Estimate</h2>
+  <div class="table-wrap">
+    <table class="cost-table">
+      <thead><tr><th>Component</th><th>What it is used for in production</th><th>Configuration or assumption</th><th>Public rate or calculation</th><th>Monthly</th></tr></thead>
+      <tbody>
+        <tr><td>Azure AI Search</td><td>Stores 15M enriched documents and serves all six retrieval modes.</td><td>S2; 3 partitions x 3 replicas = 9 SU</td><td>$1.344/SU-hour x 9 x 730</td><td><strong>$8,830.08</strong></td></tr>
+        <tr><td>Azure Container Registry</td><td>Stores versioned production application and worker images.</td><td>Standard tier</td><td>$0.6666/day x 30</td><td><strong>$20.00</strong></td></tr>
+        <tr><td>Private connectivity</td><td>Privately connects application, data, Search, and AI services.</td><td>Private endpoints, Search shared links, and environment allowance</td><td>Hourly rates and allowance</td><td><strong>$116.80</strong></td></tr>
+        <tr><td>Private DNS</td><td>Resolves production private service endpoints.</td><td>Approximately 6 zones</td><td>About $0.50/zone-month</td><td><strong>$3.00</strong></td></tr>
+        <tr><td>Azure Container Apps serving</td><td>Hosts the redundant authenticated React/FastAPI application.</td><td>20M active replica-seconds plus 10M requests</td><td>Active vCPU/memory and request meters</td><td><strong>$603.20</strong></td></tr>
+        <tr><td>Catalog enrichment workers</td><td>Processes changed products outside the serving path.</td><td>750,000 changed products/month</td><td>Planning allowance pending load test</td><td><strong>$200.00</strong></td></tr>
+        <tr><td>GPT-5.4 mini query understanding</td><td>Converts shopper requests into validated intent and filters.</td><td>10M calls; 12B input and 1.5B output tokens</td><td>$0.75/M input; $4.50/M output</td><td><strong>$15,750.00</strong></td></tr>
+        <tr><td>GPT-5.4 mini ongoing enrichment</td><td>Creates taxonomy, attributes, confidence, and search text.</td><td>750,000 changed products/month</td><td>Same GPT token rates</td><td><strong>$1,181.25</strong></td></tr>
+        <tr><td>Annual full-catalog rebuild reserve</td><td>Funds schema/model upgrades, recovery, and blue/green replacement.</td><td>$26,358 initial build / 12 months</td><td>Amortized planning reserve</td><td><strong>$2,196.50</strong></td></tr>
+        <tr><td>Azure OpenAI text embeddings</td><td>Creates query and changed-product text vectors.</td><td>315M embedded tokens</td><td>$0.022/M tokens</td><td><strong>$6.93</strong></td></tr>
+        <tr><td>Azure AI Vision</td><td>Creates vectors for image queries and changed product images.</td><td>1.6M image embeddings</td><td>$0.10/1,000 images</td><td><strong>$160.00</strong></td></tr>
+        <tr><td>Cosmos DB autoscale throughput</td><td>Runs the authoritative two-region product catalog.</td><td>15,000 average billable RU/s x 2 regions</td><td>$0.012/100 RU/s-hour</td><td><strong>$2,628.00</strong></td></tr>
+        <tr><td>Cosmos DB storage</td><td>Stores source JSON and indexes in both regions.</td><td>120 GB x 2 regions</td><td>$0.25/GB-month</td><td><strong>$60.00</strong></td></tr>
+        <tr><td>Blob image storage</td><td>Stores 12 million optimized private product images.</td><td>Approximately 3 TB Hot storage</td><td>Rounded storage/transaction allowance</td><td><strong>$70.00</strong></td></tr>
+        <tr><td>Front Door/CDN and image delivery</td><td>Caches and securely delivers optimized result thumbnails.</td><td>10M searches and measured cache behavior pending</td><td>Planning allowance</td><td><strong>$1,000.00</strong></td></tr>
+        <tr><td>Log Analytics/Application Insights</td><td>Captures production traces, metrics, failures, and performance.</td><td>200 GB/month; 30-day retention</td><td>$2.76/GB ingestion</td><td><strong>$552.00</strong></td></tr>
+        <tr><td>Semantic ranker</td><td>Reranks semantic and combined search results.</td><td>3M requests less 1,000 free</td><td>$1/1,000 requests</td><td><strong>$2,999.00</strong></td></tr>
+        <tr><td>Key Vault and backup allowance</td><td>Covers operational certificates/configuration and backup overhead.</td><td>Low transaction volume</td><td>Planning allowance</td><td><strong>$35.00</strong></td></tr>
+        <tr><td>Managed identities, RBAC, VNet, and Entra app registration</td><td>Provides passwordless access, authorization, isolation, and sign-in.</td><td>Production-scoped security model</td><td>No direct base charge</td><td><strong>$0.00</strong></td></tr>
+        <tr class="total"><td colspan="4">Single-primary-region recurring production baseline</td><td>$36,411.76</td></tr>
+        <tr class="total"><td colspan="4">Planning budget with 20% contingency</td><td>$43,694.11</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Initial Catalog Build</h2>
+  <p>The initial load is a one-time first-deployment cost. One rebuild per year is included in the steady-state recurring cost as an amortized reserve. In the first month, replace the $2,196.50 reserve with the $26,358 initial build instead of adding both.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Component</th><th>Initial-build assumption</th><th>One-time cost</th></tr></thead>
+      <tbody>
+        <tr><td>GPT-5.4 mini full enrichment</td><td>15M products at 1,200 input and 150 output tokens</td><td><strong>$23,625.00</strong></td></tr>
+        <tr><td>Text embeddings</td><td>15M products at about 100 embedded tokens</td><td><strong>$33.00</strong></td></tr>
+        <tr><td>Vision image embeddings</td><td>12M product images</td><td><strong>$1,200.00</strong></td></tr>
+        <tr><td>Pipeline compute, retries, and operations</td><td>Parallel workers, checkpointing, replay, and blue/green load</td><td><strong>$1,500.00</strong></td></tr>
+        <tr class="total"><td colspan="2">Initial build total</td><td>$26,358.00</td></tr>
+        <tr class="total"><td colspan="2">Initial build budget with 20% contingency</td><td>$31,629.60</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Capacity Checks</h2>
+  <ul>
+    <li><strong>Search storage:</strong> three new S2 partitions in Central US provide 1.5 TB.</li>
+    <li><strong>Vector quota:</strong> three S2 partitions provide 450 GB; estimated raw vectors are 141 GB per index before HNSW overhead.</li>
+    <li><strong>Index lifecycle:</strong> production keeps only active and candidate indexes; retaining POC V1-V3 is outside this sizing assumption.</li>
+    <li><strong>Availability:</strong> three replicas provide Azure AI Search query-and-indexing SLA coverage.</li>
+    <li><strong>Document count:</strong> 15 million is well below the 24-billion-document S2 limit.</li>
+    <li><strong>Initial indexing:</strong> use checkpointed parallel batches; the current single-worker POC job is not a production loader.</li>
+  </ul>
+
+  <h2>Required Validation Before Commitment</h2>
+  <ol>
+    <li>Load at least 1 million representative products into S2 and project full plus blue/green storage from Search statistics.</li>
+    <li>Load-test all six search modes at retail-event peaks and adjust replicas from p95 latency and throttling.</li>
+    <li>Measure GPT tokens and the percentage of requests that deterministic routing or caching can bypass.</li>
+    <li>Measure Cosmos hourly peak RU, define edge authentication and thumbnail generation, and measure CDN/WAF traffic, cache-hit ratio, and telemetry ingestion.</li>
+    <li>Confirm model quota and obtain negotiated enterprise prices before budget approval.</li>
+  </ol>
+
+  <h2>Cost Sensitivity</h2>
+  <div class="table-wrap"><table><thead><tr><th>Change</th><th>Approximate monthly impact</th></tr></thead><tbody>
+    <tr><td>Additional 1M searches with GPT on every request</td><td><strong>+$1,575</strong> plus compute/embeddings</td></tr>
+    <tr><td>Route only 30% of searches through GPT</td><td><strong>-$11,025</strong></td></tr>
+    <tr><td>Additional 1M semantic requests</td><td><strong>+$1,000</strong></td></tr>
+    <tr><td>Additional S2 Search Unit</td><td><strong>+$981.12</strong></td></tr>
+    <tr><td>Increase Search from 3 x 3 to 4 x 3</td><td><strong>+$2,943.36</strong></td></tr>
+    <tr><td>Additional 1% monthly catalog churn</td><td><strong>About +$236 GPT</strong> plus workers/embeddings</td></tr>
+    <tr><td>Additional 100 GB of Analytics Logs</td><td><strong>+$276</strong></td></tr>
+    <tr><td>Cosmos reaches 50,000 RU/s in both regions</td><td><strong>Throughput rises from $2,628 to $8,760</strong></td></tr>
+  </tbody></table></div>
+
+  <h2>Important Notes</h2>
+  <div class="notice">This is a single-primary-region Search/application planning estimate with two-region Cosmos DB, not full regional active/active disaster recovery. Representative testing is required before funding approval.</div>
+  <ul>
+    <li>The 3-partition S2 design is a starting hypothesis. Search index size depends on tokenization, HNSW, vectors, and field attributes.</li>
+    <li>If blue/green vector usage exceeds quota, use vector compression, reduce dimensions, remove unnecessary stored vectors, add a partition, or move to S3.</li>
+    <li>Multi-region active/active hosting, a secondary Search service for disaster recovery, DDoS Network Protection, Defender plans, Azure support, taxes, and staff labor are excluded.</li>
+    <li>A secondary regional Search service would approximately double the Search line and add replication, hosting, and network costs.</li>
+    <li>Production image delivery should use thumbnails and CDN caching, not proxy every original image through FastAPI.</li>
+  </ul>
+
+  <h2>Pricing References</h2>
+  <ul>
+    <li><a href="https://azure.microsoft.com/pricing/details/search/">Azure AI Search pricing</a></li>
+    <li><a href="https://learn.microsoft.com/azure/search/search-limits-quotas-capacity">Azure AI Search service limits</a></li>
+    <li><a href="https://learn.microsoft.com/azure/search/search-capacity-planning">Azure AI Search capacity planning</a></li>
+    <li><a href="https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/">Azure OpenAI pricing</a></li>
+    <li><a href="https://azure.microsoft.com/pricing/details/container-apps/">Azure Container Apps pricing</a></li>
+    <li><a href="https://azure.microsoft.com/pricing/details/cosmos-db/autoscale-provisioned/">Azure Cosmos DB pricing</a></li>
+    <li><a href="https://azure.microsoft.com/pricing/details/frontdoor/">Azure Front Door pricing</a></li>
+    <li><a href="https://azure.microsoft.com/pricing/details/monitor/">Azure Monitor pricing</a></li>
+  </ul>
+  <footer>Prepared for production planning of the TJX Retail Search solution. Recalculate after representative sizing and load tests.</footer>
+</main>
+</body>
+</html>

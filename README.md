@@ -12,6 +12,8 @@ The reference environment currently indexes 31 products: 23 have private product
 | [Editable Draw.io architecture](docs/tjx-retail-search-architecture.drawio) | Visual architecture with Azure stencils, Microsoft Foundry model usage, and a plain-language flow guide. |
 | [Monthly cost estimate](docs/cost-estimate.md) | Pricing assumptions and estimated monthly Azure cost in Markdown. |
 | [Monthly cost estimate (HTML)](docs/cost-estimate.html) | Responsive, printable version of the monthly cost estimate. |
+| [Production cost estimate](docs/prod-cost-estimate.md) | 15-million-item production assumptions, recurring run rate, initial enrichment cost, capacity checks, and sensitivities. |
+| [Production cost estimate (HTML)](docs/prod-cost-estimate.html) | Responsive, printable version of the production cost estimate. |
 
 ## Architecture
 
