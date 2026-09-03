@@ -2,6 +2,8 @@
 
 **Estimate date:** September 1, 2026
 
+**Last validated:** September 3, 2026 against the deployed Bicep/Search configuration and current public Azure pricing
+
 **Currency:** USD, public pay-as-you-go rates
 
 **Primary region:** Central US
@@ -34,25 +36,25 @@ Azure AI Search Basic and private connectivity make up most of the monthly cost.
 
 ## Monthly Estimate
 
-| Component | Deployed SKU/configuration | Public unit price used | POC usage assumption | Estimated monthly cost |
-| --- | --- | ---: | ---: | ---: |
-| Azure AI Search | Basic, 1 replica x 1 partition = 1 Search Unit; semantic plan `free` | $73.73 per Search Unit/month | 1 Search Unit | **$73.73** |
-| Azure Container Registry | Basic; first 10 GB included | $0.167/day | 30 days, under 10 GB | **$5.01** |
-| Azure Private Link | 2 explicit private endpoints plus 1 Search shared private link | $0.01/endpoint-hour | 3 x 730 hours | **$21.90** |
-| Azure Private DNS | 2 private DNS zones | $0.50/zone/month | 2 zones | **$1.00** |
-| Azure Container Apps web/API | Consumption, 0.5 vCPU and 1 GiB, scale to zero | First 180,000 vCPU-s, 360,000 GiB-s, and 2M requests free | 10,000 low-duration requests | **$0.00** |
-| Container Apps ingestion job | Consumption, 1 vCPU and 2 GiB | Same consumption grants | One short run/month | **$0.00** |
-| Azure OpenAI query understanding | GPT-5.4 mini, Global Standard | $0.75/1M input tokens; $4.50/1M output tokens | 12M input + 1.5M output tokens | **$15.75** |
-| Azure OpenAI index enrichment | GPT-5.4 mini, Global Standard | Same token rates | 31 records, one full pass | **$0.10** |
-| Azure OpenAI text embeddings | `text-embedding-3-small`, Global Standard | $0.022/1M tokens | About 0.24M query tokens plus index tokens | **$0.01** |
-| Azure AI Vision | S1 multimodal image embeddings | $0.10/1,000 image embeddings | 1,000 query + 23 index operations | **$0.10** |
-| Azure Cosmos DB | Serverless, single region | About $0.25/1M RU plus $0.25/GB-month | Low indexer/source activity, under 1 GB | **$0.50** |
-| Blob Storage | StorageV2 Standard LRS, Hot | Consumption-based storage and operations | Under 1 GB and low transactions | **$0.03** |
-| Log Analytics/Application Insights | Pay-as-you-go Analytics Logs, 30-day retention | $2.76/GB ingestion used for estimate | 1 GB | **$2.76** |
-| Semantic ranker | Search semantic plan `free` | First 1,000 semantic requests/month free | Up to 1,000 requests | **$0.00** |
-| Managed Identity, RBAC, VNet, Entra app registration | No separate SKU charge | No direct charge | Current configuration | **$0.00** |
-| **Estimated total** |  |  |  | **$120.89** |
-| **Planning budget, rounded with 10% contingency** |  |  |  | **$133.00** |
+| Component | What it is used for in this POC | Deployed SKU/configuration | Public unit price used | POC usage assumption | Estimated monthly cost |
+| --- | --- | --- | ---: | ---: | ---: |
+| Azure AI Search | Stores the enriched product index and runs keyword, vector, hybrid, semantic, image, and combined retrieval. It also orchestrates the 15-minute enrichment pipeline. | Basic, 1 replica x 1 partition = 1 Search Unit; semantic plan `free` | $73.73 per Search Unit/month | 1 Search Unit | **$73.73** |
+| Azure Container Registry | Stores the private application image used by both the web/API Container App and ingestion job. | Basic; first 10 GB included | $0.167/day | 30 days, under 10 GB | **$5.01** |
+| Azure Private Link | Provides private network paths to Blob Storage and Cosmos DB, plus the Search-managed private connection to Cosmos for indexing. | 2 explicit private endpoints plus 1 Search shared private link | $0.01/endpoint-hour | 3 x 730 hours | **$21.90** |
+| Azure Private DNS | Resolves the private Blob and Cosmos service names to their private endpoint addresses inside the VNet. | 2 private DNS zones | $0.50/zone/month | 2 zones | **$1.00** |
+| Azure Container Apps web/API | Hosts the React search experience and FastAPI backend, including authentication, query understanding, Search calls, enrichment skill, and private image proxy. | Consumption, 0.5 vCPU and 1 GiB, scale to zero | First 180,000 vCPU-s, 360,000 GiB-s, and 2M requests free | 10,000 low-duration requests | **$0.00** |
+| Container Apps ingestion job | Runs the one-shot catalog load that uploads product images to Blob Storage and writes source product records to Cosmos DB. | Consumption, 1 vCPU and 2 GiB | Same consumption grants | One short run/month | **$0.00** |
+| Azure OpenAI query understanding | Uses GPT-5.4 mini at search time to convert a shopper's text or combined request into validated product intent and filters. | GPT-5.4 mini, Global Standard | $0.75/1M input tokens; $4.50/1M output tokens | 12M input + 1.5M output tokens | **$15.75** |
+| Azure OpenAI index enrichment | Uses GPT-5.4 mini during indexing to create normalized retail taxonomy, attributes, confidence, and searchable product text. | GPT-5.4 mini, Global Standard | Same token rates | 31 records, one full pass | **$0.10** |
+| Azure OpenAI text embeddings | Converts enriched product text and vector-search queries into 1,536-dimensional vectors for meaning-based matching. | `text-embedding-3-small`, Global Standard | $0.022/1M tokens | About 0.24M query tokens plus index tokens | **$0.01** |
+| Azure AI Vision | Converts catalog and uploaded query images into 1,024-dimensional vectors for visual-similarity and combined search. | S1 multimodal image embeddings | $0.10/1,000 image embeddings | 1,000 query + 23 index operations | **$0.10** |
+| Azure Cosmos DB | Holds the authoritative source product records read by the application and Search indexer; generated enrichment is not written back. | Serverless, single region | About $0.25/1M RU plus $0.25/GB-month | Low indexer/source activity, under 1 GB | **$0.50** |
+| Blob Storage | Stores the original private product images used for display, ingestion enrichment, and image-vector creation. | StorageV2 Standard LRS, Hot | Consumption-based storage and operations | Under 1 GB and low transactions | **$0.03** |
+| Log Analytics/Application Insights | Collects Container Apps logs, application telemetry, failures, and performance data for monitoring and troubleshooting. | Pay-as-you-go Analytics Logs, 30-day retention | $2.76/GB ingestion used for estimate | 1 GB | **$2.76** |
+| Semantic ranker | Reorders eligible Search results using semantic relevance so the most useful matches appear first. | Search semantic plan `free` | First 1,000 semantic requests/month free | Up to 1,000 requests | **$0.00** |
+| Managed Identity, RBAC, VNet, Entra app registration | Provides passwordless service access, least-privilege authorization, network isolation, and user sign-in/API protection. | No separate SKU charge | No direct charge | Current configuration | **$0.00** |
+| **Estimated total** |  |  |  |  | **$120.89** |
+| **Planning budget, rounded with 10% contingency** |  |  |  |  | **$133.00** |
 
 The executive summary rounds the low-volume estimate to **$121/month**.
 

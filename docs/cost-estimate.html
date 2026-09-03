@@ -44,6 +44,7 @@
     .metric strong { display: block; margin-top: 4px; font: 700 30px/1.1 "Trebuchet MS", Verdana, sans-serif; }
     .table-wrap { overflow-x: auto; border: 1px solid var(--line); }
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .cost-table { min-width: 1380px; }
     th, td { padding: 10px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
     th { color: #fff; background: #253746; font-family: "Trebuchet MS", Verdana, sans-serif; }
     tbody tr:nth-child(even) { background: #f8fafb; }
@@ -76,6 +77,7 @@
     <h1>TJX Retail Search POC Monthly Cost Estimate</h1>
     <div class="meta">
       <span><strong>Estimate date:</strong> September 1, 2026</span>
+      <span><strong>Last validated:</strong> September 3, 2026</span>
       <span><strong>Currency:</strong> USD, public pay-as-you-go</span>
       <span><strong>Regions:</strong> Central US; Vision in East US</span>
     </div>
@@ -101,26 +103,26 @@
 
   <h2>Monthly Estimate</h2>
   <div class="table-wrap">
-    <table>
-      <thead><tr><th>Component</th><th>Deployed SKU/configuration</th><th>Public unit price used</th><th>POC usage assumption</th><th>Monthly</th></tr></thead>
+    <table class="cost-table">
+      <thead><tr><th>Component</th><th>What it is used for in this POC</th><th>Deployed SKU/configuration</th><th>Public unit price used</th><th>POC usage assumption</th><th>Monthly</th></tr></thead>
       <tbody>
-        <tr><td>Azure AI Search</td><td>Basic; 1 replica x 1 partition; semantic plan <code>free</code></td><td>$73.73/Search Unit/month</td><td>1 Search Unit</td><td><strong>$73.73</strong></td></tr>
-        <tr><td>Azure Container Registry</td><td>Basic; first 10 GB included</td><td>$0.167/day</td><td>30 days, under 10 GB</td><td><strong>$5.01</strong></td></tr>
-        <tr><td>Azure Private Link</td><td>2 private endpoints plus 1 Search shared private link</td><td>$0.01/endpoint-hour</td><td>3 x 730 hours</td><td><strong>$21.90</strong></td></tr>
-        <tr><td>Azure Private DNS</td><td>2 private DNS zones</td><td>$0.50/zone/month</td><td>2 zones</td><td><strong>$1.00</strong></td></tr>
-        <tr><td>Azure Container Apps web/API</td><td>Consumption; 0.5 vCPU, 1 GiB; scale to zero</td><td>Free grants: 180K vCPU-s, 360K GiB-s, 2M requests</td><td>10,000 low-duration requests</td><td><strong>$0.00</strong></td></tr>
-        <tr><td>Container Apps ingestion job</td><td>Consumption; 1 vCPU, 2 GiB</td><td>Same consumption grants</td><td>One short run/month</td><td><strong>$0.00</strong></td></tr>
-        <tr><td>Azure OpenAI query understanding</td><td>GPT-5.4 mini, Global Standard</td><td>$0.75/1M input; $4.50/1M output tokens</td><td>12M input + 1.5M output</td><td><strong>$15.75</strong></td></tr>
-        <tr><td>Azure OpenAI index enrichment</td><td>GPT-5.4 mini, Global Standard</td><td>Same token rates</td><td>31 records, one pass</td><td><strong>$0.10</strong></td></tr>
-        <tr><td>Azure OpenAI text embeddings</td><td>text-embedding-3-small, Global Standard</td><td>$0.022/1M tokens</td><td>About 0.24M query tokens plus index tokens</td><td><strong>$0.01</strong></td></tr>
-        <tr><td>Azure AI Vision</td><td>S1 multimodal image embeddings</td><td>$0.10/1,000 image embeddings</td><td>1,000 query + 23 index operations</td><td><strong>$0.10</strong></td></tr>
-        <tr><td>Azure Cosmos DB</td><td>Serverless, single region</td><td>About $0.25/1M RU + $0.25/GB-month</td><td>Low activity, under 1 GB</td><td><strong>$0.50</strong></td></tr>
-        <tr><td>Blob Storage</td><td>StorageV2 Standard LRS, Hot</td><td>Consumption-based</td><td>Under 1 GB, low transactions</td><td><strong>$0.03</strong></td></tr>
-        <tr><td>Log Analytics / Application Insights</td><td>Pay-as-you-go Analytics Logs; 30-day retention</td><td>$2.76/GB ingestion</td><td>1 GB</td><td><strong>$2.76</strong></td></tr>
-        <tr><td>Semantic ranker</td><td>Search semantic plan <code>free</code></td><td>First 1,000 requests/month free</td><td>Up to 1,000 requests</td><td><strong>$0.00</strong></td></tr>
-        <tr><td>Managed Identity, RBAC, VNet, Entra registration</td><td>No separate SKU charge</td><td>No direct charge</td><td>Current configuration</td><td><strong>$0.00</strong></td></tr>
-        <tr class="total"><td colspan="4">Estimated total</td><td>$120.89</td></tr>
-        <tr class="total"><td colspan="4">Planning budget with 10% contingency</td><td>$133.00</td></tr>
+        <tr><td>Azure AI Search</td><td>Stores the enriched product index and runs keyword, vector, hybrid, semantic, image, and combined retrieval. It also orchestrates the 15-minute enrichment pipeline.</td><td>Basic; 1 replica x 1 partition; semantic plan <code>free</code></td><td>$73.73/Search Unit/month</td><td>1 Search Unit</td><td><strong>$73.73</strong></td></tr>
+        <tr><td>Azure Container Registry</td><td>Stores the private application image used by both the web/API Container App and ingestion job.</td><td>Basic; first 10 GB included</td><td>$0.167/day</td><td>30 days, under 10 GB</td><td><strong>$5.01</strong></td></tr>
+        <tr><td>Azure Private Link</td><td>Provides private network paths to Blob Storage and Cosmos DB, plus the Search-managed private connection to Cosmos for indexing.</td><td>2 private endpoints plus 1 Search shared private link</td><td>$0.01/endpoint-hour</td><td>3 x 730 hours</td><td><strong>$21.90</strong></td></tr>
+        <tr><td>Azure Private DNS</td><td>Resolves the private Blob and Cosmos service names to their private endpoint addresses inside the VNet.</td><td>2 private DNS zones</td><td>$0.50/zone/month</td><td>2 zones</td><td><strong>$1.00</strong></td></tr>
+        <tr><td>Azure Container Apps web/API</td><td>Hosts the React search experience and FastAPI backend, including authentication, query understanding, Search calls, enrichment skill, and private image proxy.</td><td>Consumption; 0.5 vCPU, 1 GiB; scale to zero</td><td>Free grants: 180K vCPU-s, 360K GiB-s, 2M requests</td><td>10,000 low-duration requests</td><td><strong>$0.00</strong></td></tr>
+        <tr><td>Container Apps ingestion job</td><td>Runs the one-shot catalog load that uploads product images to Blob Storage and writes source product records to Cosmos DB.</td><td>Consumption; 1 vCPU, 2 GiB</td><td>Same consumption grants</td><td>One short run/month</td><td><strong>$0.00</strong></td></tr>
+        <tr><td>Azure OpenAI query understanding</td><td>Uses GPT-5.4 mini at search time to convert a shopper's text or combined request into validated product intent and filters.</td><td>GPT-5.4 mini, Global Standard</td><td>$0.75/1M input; $4.50/1M output tokens</td><td>12M input + 1.5M output</td><td><strong>$15.75</strong></td></tr>
+        <tr><td>Azure OpenAI index enrichment</td><td>Uses GPT-5.4 mini during indexing to create normalized retail taxonomy, attributes, confidence, and searchable product text.</td><td>GPT-5.4 mini, Global Standard</td><td>Same token rates</td><td>31 records, one pass</td><td><strong>$0.10</strong></td></tr>
+        <tr><td>Azure OpenAI text embeddings</td><td>Converts enriched product text and vector-search queries into 1,536-dimensional vectors for meaning-based matching.</td><td>text-embedding-3-small, Global Standard</td><td>$0.022/1M tokens</td><td>About 0.24M query tokens plus index tokens</td><td><strong>$0.01</strong></td></tr>
+        <tr><td>Azure AI Vision</td><td>Converts catalog and uploaded query images into 1,024-dimensional vectors for visual-similarity and combined search.</td><td>S1 multimodal image embeddings</td><td>$0.10/1,000 image embeddings</td><td>1,000 query + 23 index operations</td><td><strong>$0.10</strong></td></tr>
+        <tr><td>Azure Cosmos DB</td><td>Holds the authoritative source product records read by the application and Search indexer; generated enrichment is not written back.</td><td>Serverless, single region</td><td>About $0.25/1M RU + $0.25/GB-month</td><td>Low activity, under 1 GB</td><td><strong>$0.50</strong></td></tr>
+        <tr><td>Blob Storage</td><td>Stores the original private product images used for display, ingestion enrichment, and image-vector creation.</td><td>StorageV2 Standard LRS, Hot</td><td>Consumption-based</td><td>Under 1 GB, low transactions</td><td><strong>$0.03</strong></td></tr>
+        <tr><td>Log Analytics/Application Insights</td><td>Collects Container Apps logs, application telemetry, failures, and performance data for monitoring and troubleshooting.</td><td>Pay-as-you-go Analytics Logs; 30-day retention</td><td>$2.76/GB ingestion</td><td>1 GB</td><td><strong>$2.76</strong></td></tr>
+        <tr><td>Semantic ranker</td><td>Reorders eligible Search results using semantic relevance so the most useful matches appear first.</td><td>Search semantic plan <code>free</code></td><td>First 1,000 requests/month free</td><td>Up to 1,000 requests</td><td><strong>$0.00</strong></td></tr>
+        <tr><td>Managed Identity, RBAC, VNet, Entra app registration</td><td>Provides passwordless service access, least-privilege authorization, network isolation, and user sign-in/API protection.</td><td>No separate SKU charge</td><td>No direct charge</td><td>Current configuration</td><td><strong>$0.00</strong></td></tr>
+        <tr class="total"><td colspan="5">Estimated total</td><td>$120.89</td></tr>
+        <tr class="total"><td colspan="5">Planning budget with 10% contingency</td><td>$133.00</td></tr>
       </tbody>
     </table>
   </div>
