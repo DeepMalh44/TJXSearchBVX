@@ -145,8 +145,8 @@ Filter construction follows these rules:
 - Descriptive facets such as materials, styles, closures, patterns, and occasions remain in ranking text rather than becoming brittle exact filters.
 - Image mode applies the image-inferred broad family before nearest-neighbor ranking to avoid unrelated visual neighbors.
 - Combined mode takes broad family from the image and hard constraints from explicit text. The image is not allowed to invent restrictive audience/color filters.
-- During index-version transitions, the backend retries with the older V3 field set, then the V2 field set, and finally without filters if an alias target does not support newer fields.
-- This compatibility fallback adapts filters only. Image and combined modes require V4's `imageVector`; semantic and combined modes require an index containing the semantic configuration.
+- When a valid filter matches no documents, the backend relaxes it by dropping only the model's inferred product type. Explicit constraints such as family, color, and audience are never dropped, so "white bags" returns nothing rather than white sandals.
+- Separately, if an alias target *rejects* a field, the backend retries with the older V3 field set, then V2, then unfiltered. That compatibility path adapts filters only. Image and combined modes require V4's `imageVector`; semantic and combined modes require an index containing the semantic configuration.
 - Unfiltered semantic/combined results with reranker score below `2.5` are suppressed. An applied structured filter already provides a strong eligibility signal, so filtered results are not removed by that threshold.
 
 Search synonym maps can improve lexical equivalence for stable domain vocabulary, such as controlled spelling or retailer terminology. They affect searchable text analysis; they do not normalize filter values, change vector embeddings, or replace the canonical intent schema. No synonym map is currently required by the active V4 flow.

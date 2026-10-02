@@ -4,9 +4,11 @@ The root [README](../README.md) is the canonical developer and operations guide.
 
 ## Current State
 
-The reference environment is deployed primarily in Central US in `rg-tjx-retail-search-poc-greenfield-new`. Azure AI Vision is in East US because native multimodal embeddings are unavailable in Central US.
+The reference environment is deployed primarily in Central US in `rg-tjx-retail-search-poc-greenfield-new`, in subscription `86131db2-44b0-4062-b0fd-97b49a1cbacf`. Azure AI Vision is in East US because native multimodal embeddings are unavailable in Central US.
 
 The application searches 31 synthetic products: 23 image-bearing records and 8 metadata-only records. Cosmos DB for NoSQL is the source of truth. Azure AI Search stores all normalized taxonomy, generated search text, and vectors. In the reference environment, the stable alias `tjx-bvx-products-active` points to `tjx-bvx-products-enriched-v4`; a fresh environment starts on V1 until V4 is indexed, evaluated, and explicitly promoted.
+
+The repository is hosted on GitHub and has no CI/CD pipeline. Builds and deployments are run locally with `azd` and `az acr build`. Establishing a pipeline with its own workload identity is an open production item.
 
 ## Deployed Topology
 
@@ -21,6 +23,7 @@ flowchart LR
 
     Job[Container Apps ingestion job] --> Blob
     Job --> Cosmos[(Cosmos DB source of truth)]
+    Job --> AOAI
     Cosmos --> DS[V4 Cosmos data source]
     DS --> Indexer[V4 Search indexer]
     Indexer --> Skill[Authenticated custom Web API skill]
@@ -44,6 +47,15 @@ The Search enrichment pipeline creates retrieval-specific fields without changin
 - 1,024-dimensional native Vision `imageVector`
 
 Metadata-only products deliberately have no `imageVector`. They remain available to all text-based search modes.
+
+### Filterable Taxonomy Contract
+
+Indexed values and query intent must share one vocabulary, because a filter compares them literally. Two rules keep both sides aligned:
+
+- `productFamily` is constrained to the canonical set (`accessories`, `apparel`, `bag`, `footwear`, `general merchandise`, `wallet`) on both sides. The enrichment JSON schema pins it to that enum, and index-side validation maps known variants such as `handbags` to `bag` before a value can be stored. Query intent stays strict and rejects anything outside the set, because its own schema enum already guarantees a canonical value.
+- `primaryColors` records only the dominant color of the product body, most dominant first, and at most two for genuinely two-tone products. Hardware, zips, buckles, clasps, logos, trim, stitching, linings, soles, and contrasting straps are excluded and belong in `attributes` or `searchText`. Without this rule a red handbag with a black handle answers a black-only query.
+
+`productType` is deliberately not constrained. Enrichment stores specific variants such as `crossbody bag` or `satchel handbag`, which rarely equal a shopper's word, so retrieval treats it as the least reliable hard filter.
 
 ## Index-Time Enrichment
 
@@ -99,7 +111,12 @@ sequenceDiagram
 
 Keyword, vector, hybrid, and semantic modes retrieve from text. Image mode prefilters by the image-inferred canonical family and ranks native image-vector similarity. Combined mode uses the image for broad family/ranking context and applies only explicit text constraints as additional hard filters.
 
-Filter alternatives inside one facet use `or`; separate facets use `and`. Product types are not hard-filtered when multiple families are requested because flat OData expressions cannot retain the intended family/type pairing. During alias transitions, the API adapts filters through V3, V2, and unfiltered compatibility fallbacks. That fallback does not adapt schemas: image/combined modes require V4, and semantic/combined modes require the semantic configuration. Unfiltered semantic candidates below reranker score `2.5` are suppressed; filtered candidates are retained because the filter already supplies a strong eligibility signal.
+Filter alternatives inside one facet use `or`; separate facets use `and`. Product types are not hard-filtered when multiple families are requested because flat OData expressions cannot retain the intended family/type pairing. Unfiltered semantic candidates below reranker score `2.5` are suppressed; filtered candidates are retained because the filter already supplies a strong eligibility signal.
+
+Retrieval uses two separate retry chains, because a filter can fail for two unrelated reasons:
+
+- **Relaxation** handles a filter that is valid but matches no documents. It may drop only the model's inferred `productType`. The family, color, and audience a shopper stated are never discarded, so a query for white bags returns nothing rather than white sandals when no white bag exists.
+- **Compatibility** is entered only when the index *rejects* a field with HTTP 400, which happens when the stable alias points at an older index schema. It may drop any field, including `productFamily`, because the goal is to find a filter the target index accepts. It adapts filters only: image and combined modes still require V4, and semantic and combined modes require the semantic configuration.
 
 ## Identity and Network Boundaries
 

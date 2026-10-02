@@ -16,7 +16,7 @@ The editable workbook [`tjx-ai-search-diagrams.drawio`](tjx-ai-search-diagrams.d
 
 ## State Model
 
-**Observed:** The deployed POC uses Basic Azure AI Search with one partition and one replica. The Container App has public TLS ingress protected by Microsoft Entra ID. Blob Storage and Cosmos DB use private endpoints; Search reaches Cosmos through a shared private link. Search, Azure OpenAI, Azure AI Vision, and the Container App retain public endpoints with identity-based authorization.
+**Observed:** The deployed POC uses Basic Azure AI Search with one partition and one replica. The Container App has public TLS ingress protected by Microsoft Entra ID. Blob Storage and Cosmos DB use private endpoints; Search reaches Cosmos through a shared private link. Search, Azure OpenAI, Azure AI Vision, and the Container App retain public endpoints with identity-based authorization. The repository is hosted on GitHub and has no CI/CD pipeline: builds and deployments are run locally through `azd` and `az acr build`.
 
 **Assumption:** The first production release starts with 1 million products, 60% with images, S2 Search with one partition and two replicas, US-only TJX employee access, no Azure Front Door, and a one-day RTO.
 
@@ -31,7 +31,7 @@ The editable workbook [`tjx-ai-search-diagrams.drawio`](tjx-ai-search-diagrams.d
 - **Reliability:** Versioned indexes and a stable alias provide application-level rollback. A secondary Search service and active/active regional path are intentionally excluded. RPO and backup policies remain open.
 - **Security:** Entra tokens, managed identities, resource-scoped RBAC, private source stores, safe blob-name validation, and canonical filter allowlists are present. Delegated scope enforcement, vendor identity, private AI endpoints, egress controls, and security operations integration require decisions.
 - **Cost optimization:** Search units and GPT query traffic are the principal drivers. Starting with one partition and two replicas is appropriate for the proposed 1-million-item launch, subject to measured index size and load tests.
-- **Operational excellence:** Infrastructure and Search objects are repeatable through azd, Bicep, and scripts. Production alert rules, incident ownership, runbooks, and rollback approvals remain to be established.
+- **Operational excellence:** Infrastructure and Search objects are repeatable through azd, Bicep, and scripts, but no CI/CD pipeline exists yet; builds and deployments are run locally. A build pipeline with its own workload identity, production alert rules, incident ownership, runbooks, and rollback approvals remain to be established.
 - **Performance efficiency:** Text and image vectors use separate spaces and Search supports six retrieval modes. Representative indexing, p95 query latency, throttling, and vector-headroom tests are required before final sizing.
 
 ## Validation

@@ -559,11 +559,11 @@
                 <mxCell id="deployLane" value="Build and deployment" style="swimlane;html=1;startSize=36;fillColor=#FFF8E7;strokeColor=#F5A623;fontStyle=1;fontSize=13;" parent="1" vertex="1">
                     <mxGeometry x="50" y="120" width="1700" height="220" as="geometry"/>
                 </mxCell>
-                <mxCell id="repo" value="1  Source repository&#xa;App, Bicep, Search objects and tests" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#F5A623;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+                <mxCell id="repo" value="1  Source repository (GitHub)&#xa;App, Bicep, Search objects and tests" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#F5A623;fontSize=12;fontStyle=1;" parent="1" vertex="1">
                     <mxGeometry x="100" y="205" width="260" height="82" as="geometry"/>
                 </mxCell>
-                <mxCell id="pipeline" value="Azure DevOps" style="image;aspect=fixed;html=1;image=img/lib/azure2/devops/Azure_DevOps.svg;verticalLabelPosition=bottom;verticalAlign=top;align=center;fontSize=11;fontStyle=1;" parent="1" vertex="1">
-                    <mxGeometry x="500" y="180" width="120" height="100" as="geometry"/>
+                <mxCell id="pipeline" value="2  Build and push (azd / az acr build)&#xa;ASSUMED: no CI/CD pipeline exists yet" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFF4CE;strokeColor=#D6B656;dashed=1;fontSize=11;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="460" y="195" width="200" height="92" as="geometry"/>
                 </mxCell>
                 <mxCell id="acr" value="Azure Container Registry" style="image;aspect=fixed;html=1;image=img/lib/azure2/containers/Container_Registries.svg;verticalLabelPosition=bottom;verticalAlign=top;align=center;fontSize=11;fontStyle=1;" parent="1" vertex="1">
                     <mxGeometry x="780" y="180" width="140" height="100" as="geometry"/>
@@ -622,7 +622,7 @@
                 <mxCell id="r5" value="5  Resume user traffic" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#C00000;fontSize=11;fontStyle=1;" parent="1" vertex="1">
                     <mxGeometry x="1360" y="775" width="220" height="48" as="geometry"/>
                 </mxCell>
-                <mxCell id="assumptions" value="Assumptions / Design gaps: One-day RTO is a target, not proven. Define RPO, backup modes, alert thresholds, on-call ownership, incident runbooks and rollback approvals. No secondary region is included." style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFF4CE;strokeColor=#D6B656;fontSize=11;align=left;spacing=10;" parent="1" vertex="1">
+                <mxCell id="assumptions" value="Assumptions / Design gaps: No CI/CD pipeline exists; builds and deployments are run locally through azd and az acr build. One-day RTO is a target, not proven. Define the build pipeline and its identity, RPO, backup modes, alert thresholds, on-call ownership, incident runbooks and rollback approvals. No secondary region is included." style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFF4CE;strokeColor=#D6B656;fontSize=11;align=left;spacing=10;" parent="1" vertex="1">
                     <mxGeometry x="330" y="885" width="1140" height="64" as="geometry"/>
                 </mxCell>
             </root>
