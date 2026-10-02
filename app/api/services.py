@@ -41,7 +41,10 @@ PRODUCT_ENRICHMENT_SCHEMA = {
         "type": "object",
         "properties": {
             "description": {"type": "string"},
-            "productFamily": {"type": "string"},
+            "productFamily": {
+                "type": "string",
+                "enum": sorted(CANONICAL_PRODUCT_FAMILIES),
+            },
             "productType": {"type": "string"},
             "audiences": {"type": "array", "items": {"type": "string"}},
             "primaryColors": {"type": "array", "items": {"type": "string"}},
@@ -145,6 +148,9 @@ EXCLUDED_INTENT_FIELD_ADAPTERS = {
     "excludedNormalizedBrands": ("normalizedBrand", False),
 }
 V2_INTENT_FIELDS = {"productTypes", "primaryColors", "materials", "attributes"}
+# Broadest meaningful filter: canonical family alone still bounds retrieval to the right
+# part of the catalog when narrower facets such as product type exclude everything.
+BROAD_INTENT_FIELDS = {"productFamilies"}
 SEMANTIC_CONFIGURATION_NAME = "tjx-bvx-products-semantic-v3"
 MIN_SEMANTIC_RERANKER_SCORE = 2.5
 VISION_API_VERSION = "2024-02-01"
@@ -167,6 +173,12 @@ RANKING_ONLY_INTENT_FIELDS = {
     "patterns",
     "styles",
 }
+# Relaxation order is by brittleness, not by breadth. Product type is the least reliable
+# hard filter because enrichment stores specific variants such as "satchel handbag" or
+# "crossbody bag" that rarely equal the shopper's word ("handbag"), so it is dropped
+# before explicitly stated constraints such as colour or audience.
+FILTERABLE_INTENT_FIELDS = set(INTENT_FIELD_ADAPTERS) - RANKING_ONLY_INTENT_FIELDS
+WITHOUT_PRODUCT_TYPE_FIELDS = FILTERABLE_INTENT_FIELDS - {"productTypes"}
 
 
 def is_generic_product_type(value: str) -> bool:
@@ -428,7 +440,7 @@ class AzureServices:
             filter_intent = intent
         options: dict[str, Any] = {
             "top": request.top,
-            "select": ["id", "name", "description", "category", "imageUrl"],
+            "select": ["id", "name", "description", "category", "productFamily", "imageUrl"],
         }
         semantic_modes = {SearchMode.SEMANTIC, SearchMode.COMBINED}
         vector_queries: list[VectorizableTextQuery | VectorizedQuery] = []
@@ -462,30 +474,62 @@ class AzureServices:
             if request.mode not in {SearchMode.VECTOR, SearchMode.IMAGE}
             else None
         )
-        filters = (
+        # Two distinct chains with different rules. Relaxation handles a valid filter that
+        # matched nothing, and may only drop the model's *inferred* product type; the
+        # family, colour and audience a shopper stated are never discarded, because
+        # answering "white bags" with white sandals is worse than answering with nothing.
+        # The compatibility chain is entered only when the index *rejects* a field, and
+        # exists so a stable alias can still serve an older index schema.
+        relaxation = (
             [None]
             if filter_intent is None
-            else [
-                intent_filter(filter_intent),
-                intent_filter(filter_intent, V2_INTENT_FIELDS),
-                None,
-            ]
+            else list(
+                dict.fromkeys(
+                    [
+                        intent_filter(filter_intent),
+                        intent_filter(filter_intent, WITHOUT_PRODUCT_TYPE_FIELDS),
+                    ]
+                )
+            )
+        )
+        compatibility = (
+            []
+            if filter_intent is None
+            else list(
+                dict.fromkeys(
+                    [
+                        intent_filter(filter_intent, V2_INTENT_FIELDS),
+                        intent_filter(filter_intent, BROAD_INTENT_FIELDS),
+                        None,
+                    ]
+                )
+            )
         )
         rows = None
         applied_filter: str | None = None
-        for product_filter in dict.fromkeys(filters):
+        pending = list(relaxation)
+        switched_to_compatibility = False
+        while pending:
+            product_filter = pending.pop(0)
             if product_filter:
                 options["filter"] = product_filter
             else:
                 options.pop("filter", None)
             try:
-                rows = list(self.search.search(search_text=search_text, **options))
-                applied_filter = product_filter
-                break
+                candidates = list(self.search.search(search_text=search_text, **options))
             except HttpResponseError as exc:
                 if product_filter is None or exc.status_code != 400:
                     raise
                 logger.info("Active Search index rejected intent filter; trying older adapter")
+                if not switched_to_compatibility:
+                    pending = list(compatibility)
+                    switched_to_compatibility = True
+                continue
+            rows = candidates
+            applied_filter = product_filter
+            if candidates or product_filter is None:
+                break
+            logger.info("Intent filter matched no documents; dropping inferred product type")
         assert rows is not None
         # Suppress weak unfiltered semantic neighbors; an explicit filter is already a
         # strong eligibility signal and should not be overridden by this ranking threshold.
@@ -501,6 +545,7 @@ class AzureServices:
                 name=row.get("name", ""),
                 description=row.get("description", ""),
                 category=row.get("category", ""),
+                product_family=row.get("productFamily", ""),
                 image_url=(
                     f"/api/images/{safe_blob_name(row['imageUrl'])}"
                     if row.get("imageUrl")
@@ -542,12 +587,19 @@ class AzureServices:
             "Describe and classify only the primary retail product. Ignore backgrounds, "
             "surfaces, models, hangers, props, and accessories not being sold. Return a "
             "concise product-only description and normalized lower-case retail taxonomy "
-            "for product family, product type, audiences, visible or explicitly coded "
+            "for product family, product type, audiences, dominant "
             "colors, materials, styles, closure types, patterns, occasions, brand, and "
             "useful attributes. Normalize recognized retail shorthand and source codes "
             "from their catalog context without relying on a retailer-specific codebook. "
             "Do not guess when a token is ambiguous; preserve it in search text instead. "
-            "Use a broad, stable retail product family and a specific product type. "
+            "Product family must be exactly one of "
+            f"{', '.join(sorted(CANONICAL_PRODUCT_FAMILIES))}; product type is specific. "
+            "primaryColors must list only the dominant color of the product body, most "
+            "dominant first, and at most two when the product is genuinely two-tone. "
+            "Exclude hardware, zips, buckles, clasps, logos, trim, stitching, linings, "
+            "soles, and contrasting straps; put those in attributes or search text so a "
+            "shopper filtering by color never matches an accent. Begin the description "
+            "with that dominant color. "
             "Use empty arrays or an empty string when an "
             "attribute is neither visible nor supported by source metadata; do not guess. "
             "Include natural search text with common retail synonyms and a 0-to-1 "

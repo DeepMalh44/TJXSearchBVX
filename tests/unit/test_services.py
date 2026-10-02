@@ -129,7 +129,7 @@ def test_hybrid_search_uses_structured_intent_for_ranking_and_filtering() -> Non
 
         def search(self, **options):
             self.options = options
-            return []
+            return [{"id": "p1"}]
 
     client = SearchClientStub()
     services = object.__new__(AzureServices)
@@ -300,7 +300,7 @@ def test_image_search_uses_product_family_filter_and_native_image_vector() -> No
 
         def search(self, **options):
             self.options = options
-            return []
+            return [{"id": "p1"}]
 
     client = SearchClientStub()
     services = object.__new__(AzureServices)
@@ -335,7 +335,7 @@ def test_combined_search_uses_text_and_native_image_vectors() -> None:
 
         def search(self, **options):
             self.options = options
-            return []
+            return [{"id": "p1"}]
 
     client = SearchClientStub()
     services = object.__new__(AzureServices)
@@ -430,7 +430,7 @@ def test_combined_search_filters_only_explicit_text_constraints() -> None:
 
         def search(self, **options):
             self.options = options
-            return []
+            return [{"id": "p1"}]
 
     client = SearchClientStub()
     services = object.__new__(AzureServices)
@@ -464,7 +464,7 @@ def test_combined_search_filters_image_family_and_explicit_audience() -> None:
 
         def search(self, **options):
             self.options = options
-            return []
+            return [{"id": "p1"}]
 
     client = SearchClientStub()
     services = object.__new__(AzureServices)
@@ -654,9 +654,109 @@ def test_search_falls_back_from_v3_to_v2_to_baseline_adapter(monkeypatch) -> Non
     services.search_products(SearchRequest(query="white sandals", mode=SearchMode.KEYWORD))
 
     assert "productFamily" in client.filters[0]
+    assert "productType" in client.filters[0]
+    # A rejected field switches to the compatibility chain, which may drop the family
+    # because the older index does not have it. That path is for schema, not relevance.
     assert "productType" in client.filters[1]
     assert "productFamily" not in client.filters[1]
-    assert client.filters[2] is None
+    assert client.filters[2] == "(productFamily eq 'footwear')"
+    assert client.filters[-1] is None
+
+
+def test_search_never_drops_product_family_when_nothing_matches() -> None:
+    """"White bags" with no white bag must return nothing, never white sandals."""
+
+    class SearchClientStub:
+        def __init__(self) -> None:
+            self.filters = []
+
+        def search(self, **options):
+            self.filters.append(options.get("filter"))
+            return []
+
+    client = SearchClientStub()
+    services = object.__new__(AzureServices)
+    services.search = client
+    services.understand_query = lambda _query: QueryIntent(
+        searchText="white bag",
+        productFamilies=["bag"],
+        primaryColors=["white"],
+    )
+
+    response = services.search_products(
+        SearchRequest(query="show me white color bags only", mode=SearchMode.SEMANTIC)
+    )
+
+    assert response.results == []
+    assert all("productFamily eq 'bag'" in (f or "") for f in client.filters)
+    assert None not in client.filters
+
+
+def test_search_drops_inferred_product_type_before_explicit_constraints() -> None:
+    """An explicit colour must outlive the model's brittle product-type guess."""
+
+    class SearchClientStub:
+        def __init__(self) -> None:
+            self.filters = []
+
+        def search(self, **options):
+            product_filter = options.get("filter")
+            self.filters.append(product_filter)
+            if product_filter is not None and "productType" not in product_filter:
+                return [{"id": "H6", "name": "brown crossbody", "productFamily": "bag"}]
+            return []
+
+    client = SearchClientStub()
+    services = object.__new__(AzureServices)
+    services.search = client
+    services.understand_query = lambda _query: QueryIntent(
+        searchText="brown handbag",
+        productFamilies=["bag"],
+        productTypes=["handbag"],
+        primaryColors=["brown"],
+    )
+
+    response = services.search_products(
+        SearchRequest(query="show me brown color handbag only", mode=SearchMode.SEMANTIC)
+    )
+
+    applied = client.filters[-1]
+    assert "productType" not in applied
+    assert "primaryColors/any(item: item eq 'brown')" in applied
+    assert "productFamily eq 'bag'" in applied
+    assert [result.id for result in response.results] == ["H6"]
+
+
+def test_search_relaxes_filter_that_matches_no_documents() -> None:
+    class SearchClientStub:
+        def __init__(self) -> None:
+            self.filters = []
+
+        def search(self, **options):
+            product_filter = options.get("filter")
+            self.filters.append(product_filter)
+            if product_filter == "(productFamily eq 'bag')":
+                return [{"id": "bag-1", "name": "Top Handle Handbag"}]
+            return []
+
+    client = SearchClientStub()
+    services = object.__new__(AzureServices)
+    services.search = client
+    services.understand_query = lambda _query: QueryIntent(
+        searchText="hand bag",
+        productFamilies=["bag"],
+        productTypes=["handbag"],
+    )
+
+    response = services.search_products(
+        SearchRequest(query="hand bag", mode=SearchMode.KEYWORD)
+    )
+
+    # The narrow family+type filter excludes every document, so retrieval widens to the
+    # canonical family instead of reporting no matches.
+    assert client.filters[0] == "(productFamily eq 'bag') and (productType eq 'handbag')"
+    assert client.filters[-1] == "(productFamily eq 'bag')"
+    assert [result.id for result in response.results] == ["bag-1"]
 
 
 def test_product_enrichment_retries_transient_model_failure() -> None:

@@ -13,7 +13,12 @@ QUERY_IMAGE_PREFIXES = (
     "data:image/webp;base64,",
 )
 VALUE_ALIASES = {
-    "productFamilies": {"bags": "bag", "handbag": "bag", "handbags": "bag"},
+    "productFamilies": {
+        "bags": "bag",
+        "handbag": "bag",
+        "handbags": "bag",
+        "wallets": "wallet",
+    },
     "productTypes": {
         "sandal": "sandals",
         "pump": "pumps",
@@ -47,6 +52,34 @@ CANONICAL_PRODUCT_FAMILIES = {
     "footwear",
     "general merchandise",
     "wallet",
+}
+# Scalar index-side fields reuse the plural alias maps shared with query intent, so
+# both sides of the pipeline normalize a value such as "handbags" to "bag".
+SCALAR_TAXONOMY_ALIAS_FIELDS = {
+    "productFamily": "productFamilies",
+    "productType": "productTypes",
+}
+# Index-side only. Enrichment may return a product *type* where a family is required;
+# query intent must not accept these, because its schema enum already guarantees a
+# canonical value and silently widening it would hide a genuine contract violation.
+INDEX_FAMILY_ALIASES = {
+    "boots": "footwear",
+    "sandals": "footwear",
+    "shoe": "footwear",
+    "shoes": "footwear",
+    "sneakers": "footwear",
+    "clothing": "apparel",
+    "dress": "apparel",
+    "dresses": "apparel",
+    "outerwear": "apparel",
+    "top": "apparel",
+    "tops": "apparel",
+    "backpack": "bag",
+    "purse": "bag",
+    "purses": "bag",
+    "tote": "bag",
+    "accessory": "accessories",
+    "jewelry": "accessories",
 }
 
 
@@ -124,6 +157,7 @@ class ProductResult(BaseModel):
     name: str
     description: str
     category: str
+    product_family: str = ""
     image_url: str | None
     score: float | None = None
 
@@ -250,8 +284,15 @@ class SkillOutput(BaseModel):
     @field_validator("productFamily", "productType")
     @classmethod
     def normalize_scalar_taxonomy(cls, value: str, info: ValidationInfo) -> str:
-        normalized = normalize_catalog_values([value], f"{info.field_name}s")
-        return normalized[0] if normalized else ""
+        """Align indexed taxonomy with the canonical values query intent can produce."""
+        normalized = normalize_catalog_values(
+            [value], SCALAR_TAXONOMY_ALIAS_FIELDS[info.field_name]
+        )
+        resolved = normalized[0] if normalized else ""
+        if info.field_name != "productFamily" or not resolved:
+            return resolved
+        resolved = INDEX_FAMILY_ALIASES.get(resolved, resolved)
+        return resolved if resolved in CANONICAL_PRODUCT_FAMILIES else "general merchandise"
 
     @field_validator(
         "audiences",

@@ -4,7 +4,7 @@ import { ImagePlus, LogIn, LogOut, Search, ShieldCheck, Sparkles, X } from "luci
 import { apiScope } from "./auth";
 
 type Mode = "keyword" | "vector" | "hybrid" | "semantic" | "image" | "combined";
-type Product = { id: string; name: string; description: string; category: string; image_url: string | null; score: number | null };
+type Product = { id: string; name: string; description: string; category: string; product_family: string; image_url: string | null; score: number | null };
 type Response = { results: Product[]; diagnostics: { mode: Mode; count: number; elapsed_ms: number } };
 
 function useAccessToken() {
@@ -108,7 +108,7 @@ export default function App() {
       {status === "error" && <div className="state error" role="alert">{errorMessage}</div>}
       {!authenticated && <div className="state">Sign in to search the private catalog.</div>}
       {authenticated && data?.results.length === 0 && <div className="state">No matching products found.</div>}
-      {data && <><div className="diagnostics"><span>{data.diagnostics.count} results</span><span>{data.diagnostics.mode}</span><span>{data.diagnostics.elapsed_ms} ms</span></div><div className="grid">{data.results.map((product) => <article key={product.id}><ProductImage product={product} token={token} /><div className="product-copy"><p>{product.category}</p><h2>{product.name}</h2><span>{product.description}</span>{product.score !== null && <small>Relevance {product.score.toFixed(3)}</small>}</div></article>)}</div></>}
+      {data && <><div className="diagnostics"><span>{data.diagnostics.count} results</span><span>{data.diagnostics.mode}</span><span>{data.diagnostics.elapsed_ms} ms</span></div><div className="grid">{data.results.map((product) => <article key={product.id}><ProductImage product={product} token={token} /><div className="product-copy"><p>{product.product_family || product.category}</p><h2>{product.name}</h2><span>{product.description}</span>{product.score !== null && <small>Relevance {product.score.toFixed(3)}</small>}</div></article>)}</div></>}
     </section>
   </main>;
 }
